@@ -131,23 +131,21 @@ class lmdbDataset_real(Dataset):
         label_str = str_filt(word, self.voc_type)
         return img_HR, img_lr, label_str
 
+from torchvision import transforms as T
 
 class resizeNormalize(object):
     def __init__(self, size, mask=False, interpolation=Image.BICUBIC):
         self.size = size
         self.interpolation = interpolation
         self.toTensor = transforms.ToTensor()
+        self.normalize = T.Normalize(0.5, 0.5)
         self.mask = mask
 
     def __call__(self, img):
         img = img.resize(self.size, self.interpolation)
         img_tensor = self.toTensor(img)
-        if self.mask:
-            mask = img.convert('L')
-            thres = np.array(mask).mean()
-            mask = mask.point(lambda x: 0 if x > thres else 255)
-            mask = self.toTensor(mask)
-            img_tensor = torch.cat((img_tensor, mask), 0)
+        img_tensor = self.normalize(img_tensor)
+        
         return img_tensor
 
 
@@ -198,6 +196,8 @@ class lmdbDataset_mix(Dataset):
                 img_lr = img_HR
 
         label_str = str_filt(word, self.voc_type)
+        print(img_HR.shape)
+        print(img_lr.shape)
         return img_HR, img_lr, label_str
 
 
@@ -260,13 +260,18 @@ class alignCollate_real(alignCollate_syn):
         imgW = self.imgW
         transform = resizeNormalize((imgW, imgH), self.mask)
         transform2 = resizeNormalize((imgW // self.down_sample_scale, imgH // self.down_sample_scale), self.mask)
+        
         images_HR = [transform(image) for image in images_HR]
         images_HR = torch.cat([t.unsqueeze(0) for t in images_HR], 0)
+        
+        interpolated_image_lr = [transform(image) for image in images_lr]
+        interpolated_image_lr = torch.cat([t.unsqueeze(0) for t in interpolated_image_lr], 0)
 
         images_lr = [transform2(image) for image in images_lr]
         images_lr = torch.cat([t.unsqueeze(0) for t in images_lr], 0)
+        
 
-        return images_HR, images_lr, label_strs
+        return images_HR, images_lr,interpolated_image_lr, label_strs
 
 
 class ConcatDataset(Dataset):
@@ -303,6 +308,7 @@ class ConcatDataset(Dataset):
             sample_idx = idx
         else:
             sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
+            
         return self.datasets[dataset_idx][sample_idx]
 
     @property

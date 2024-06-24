@@ -13,6 +13,7 @@ import warnings
 from PIL import Image
 import numpy as np
 import string
+import numpy
 
 sys.path.append('../')
 from utils import str_filt

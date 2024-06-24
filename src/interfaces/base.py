@@ -80,7 +80,7 @@ class TextBase(object):
 
         train_loader = torch.utils.data.DataLoader(
             train_dataset, batch_size=self.batch_size,
-            shuffle=True, num_workers=int(cfg.workers),
+            shuffle=False, num_workers=int(cfg.workers),
             collate_fn=self.align_collate(imgH=cfg.height, imgW=cfg.width, down_sample_scale=cfg.down_sample_scale,
                                           mask=self.mask),
             drop_last=True)

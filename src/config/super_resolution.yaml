@@ -1,12 +1,12 @@
 MODEL:
 
-
 TRAIN:
   train_data_dir: [
     '../dataset/lmdb/str/TextZoom/train1',
     '../dataset/lmdb/str/TextZoom/train2',
   ]
-  batch_size: 512
+   
+  batch_size: 2
   width: 128
   height: 32
   epochs: 500

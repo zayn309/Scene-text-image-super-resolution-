@@ -7,42 +7,60 @@ from easydict import EasyDict
 from interfaces.base import TextBase 
 import matplotlib.pyplot as plt
 import numpy as np 
+from TP_Module import TP_module
+
 
 def main(config, args):
     Mission = TextBase(config, args)
     _, dataloader = Mission.get_train_data()
+    data = next(iter(dataloader))
+
+    images_hr, images_lr,interpolated_image_lr, label_strs = data
     
-    for j, data in enumerate(dataloader):
-        images_hr, images_lr, label_strs = data
-        print(images_hr.shape)
-        print(images_lr.shape)
-        print(label_strs[0])
-        
-        # Convert tensors to numpy arrays
-        image_hr = images_hr[0].numpy()
-        image_lr = images_lr[0].numpy()
-        
-        # If images have 3 channels (RGB), transpose them
-        if image_hr.shape[0] == 3:
-            image_hr = np.transpose(image_hr, (1, 2, 0))
-        if image_lr.shape[0] == 3:
-            image_lr = np.transpose(image_lr, (1, 2, 0))
-        
-        # Plot HR and LR images side by side
-        fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-        axes[0].imshow(image_hr)
-        axes[0].set_title('High Resolution')
-        axes[0].axis('off')
+    tp_generator = TP_module()
+    probs, tp_features = tp_generator(interpolated_image_lr)
+    print(probs.shape)
+    print(tp_features.shape)
+    
+    # # Convert tensors to numpy arrays
+    # image_hr = images_hr[0].numpy()
+    # image_lr = interpolated_image_lr[0].numpy()
+    
+    # # If images have 3 channels (RGB), transpose them
+    # if image_hr.shape[0] == 3:
+    #     image_hr = np.transpose(image_hr, (1, 2, 0))
+    # if image_lr.shape[0] == 3:
+    #     image_lr = np.transpose(image_lr, (1, 2, 0))
+    
+    # # Plot HR and LR images side by side
+    # fig, axes = plt.subplots(2, 2, figsize=(12, 12))
+    # axes[0, 0].imshow(image_hr)
+    # axes[0, 0].set_title('High Resolution')
+    # axes[0, 0].axis('off')
 
-        axes[1].imshow(image_lr)
-        axes[1].set_title('Low Resolution')
-        axes[1].axis('off')
-
-        fig.suptitle(f'Label: {label_strs[0]}')
-        plt.show()
-        
-        break
-
+    # axes[0, 1].imshow(image_lr)
+    # axes[0, 1].set_title('Low Resolution')
+    # axes[0, 1].axis('off')
+    
+    # # Flatten the images to get the pixel values
+    # image_hr_flat = image_hr.flatten()
+    # image_lr_flat = image_lr.flatten()
+    
+    # # Plot histograms of the pixel values
+    # axes[1, 0].hist(image_hr_flat, bins=256, color='blue', alpha=0.7)
+    # axes[1, 0].set_title('Pixel Value Distribution (HR)')
+    # axes[1, 0].set_xlabel('Pixel Value')
+    # axes[1, 0].set_ylabel('Frequency')
+    
+    # axes[1, 1].hist(image_lr_flat, bins=256, color='green', alpha=0.7)
+    # axes[1, 1].set_title('Pixel Value Distribution (LR)')
+    # axes[1, 1].set_xlabel('Pixel Value')
+    # axes[1, 1].set_ylabel('Frequency')
+    
+    # fig.suptitle(f'Label: {label_strs[0]}')
+    # plt.savefig('fig2.png')
+    # plt.show()
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
