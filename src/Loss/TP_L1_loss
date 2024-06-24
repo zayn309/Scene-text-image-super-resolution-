@@ -1,0 +1,46 @@
+import torch
+
+class TP_L1_loss():
+    def __init__(self):
+        pass
+    
+    def compute(self, tp_l, tp_gt):
+        """
+        Computes the loss between two tensors l_r and g_t.
+        
+        Parameters:
+        l_r (torch.Tensor): The generated tensor from lr with shape (batch size, 26, 95).
+        g_t (torch.Tensor): The ground_truth tensor with shape (batch size, 26, 95).
+        
+        Returns:
+        float: loss.
+        """
+        if tp_l.shape != tp_gt.shape:
+            raise ValueError("The input tensors h_r and g_t must have the same shape.")
+        
+        loss = torch.sum(torch.abs(tp_l - tp_gt)).item()
+
+        # batch_size, seq_len, voc_sz = h_r.shape
+        # loss = 0.0
+
+        # for b in range(batch_size):
+        #         for i in range(seq_len):
+        #             for j in range(voc_sz):
+        #                 l_ij = tp_l[b, c, i, j]
+        #                 gt_ij = tp_gt[b, c, i, j] 
+        #                 loss += abs(l_ij - gt_ij)
+        
+      
+        return loss
+
+# Example 
+# tp_l = torch.rand(2, 26, 95)
+# tp_gt = torch.rand(2, 26, 95)
+
+# print('h_r',h_r)
+# print('g_t',g_t)
+
+# loss_calculator = TP_L1_loss()
+# loss = loss_calculator.compute(tp_l, tp_gt)
+# print("Loss:", loss)
+
