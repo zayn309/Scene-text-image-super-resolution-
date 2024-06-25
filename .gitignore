@@ -163,3 +163,4 @@ cython_debug/
 
 # the data
 dataset/*
+pretrained_rec_weights/*
