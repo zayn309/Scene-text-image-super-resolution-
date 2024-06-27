@@ -6,7 +6,6 @@ import torch.nn as nn
 from torch.autograd import Variable
 import collections
 
-
 class strLabelConverter(object):
     """Convert between str and label.
 

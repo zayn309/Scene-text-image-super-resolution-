@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import collections
+collections.Iterable = collections.abc.Iterable
+
 
 class strLabelConverterForAttention(object):
     """Convert between str and label.

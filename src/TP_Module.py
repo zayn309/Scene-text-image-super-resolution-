@@ -17,7 +17,6 @@ class TP_transformer(nn.Module):
         self.bn1 = nn.BatchNorm2d(16)
 
         self.act = nn.PReLU()
-        # Second Conv Layer
         self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(4, 3), stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(32)
     

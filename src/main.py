@@ -8,58 +8,55 @@ from interfaces.base import TextBase
 import matplotlib.pyplot as plt
 import numpy as np 
 from TP_Module import TP_module
+import torch
+from torch.autograd import Variable
+from utils.metrics import get_string_crnn, get_string_aster
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def main(config, args):
-    Mission = TextBase(config, args)
-    _, dataloader = Mission.get_train_data()
-    data = next(iter(dataloader))
+    # Mission = TextBase(config, args)
+    # _, dataloader = Mission.get_train_data()
+    # data = next(iter(dataloader))
 
-    images_hr, images_lr,interpolated_image_lr, label_strs = data
-    
-    tp_generator = TP_module()
-    probs, tp_features = tp_generator(interpolated_image_lr)
-    print(probs.shape)
-    print(tp_features.shape)
-    
-    # # Convert tensors to numpy arrays
-    # image_hr = images_hr[0].numpy()
-    # image_lr = interpolated_image_lr[0].numpy()
-    
-    # # If images have 3 channels (RGB), transpose them
-    # if image_hr.shape[0] == 3:
-    #     image_hr = np.transpose(image_hr, (1, 2, 0))
-    # if image_lr.shape[0] == 3:
-    #     image_lr = np.transpose(image_lr, (1, 2, 0))
-    
-    # # Plot HR and LR images side by side
-    # fig, axes = plt.subplots(2, 2, figsize=(12, 12))
-    # axes[0, 0].imshow(image_hr)
-    # axes[0, 0].set_title('High Resolution')
-    # axes[0, 0].axis('off')
+    # images_hr, images_lr, interpolated_image_lr, label_strs = data
 
-    # axes[0, 1].imshow(image_lr)
-    # axes[0, 1].set_title('Low Resolution')
-    # axes[0, 1].axis('off')
+    # crnn = Mission.CRNN_init().eval()
+    # parsed_images = Mission.parse_crnn_data((images_hr + 1) /2)
+    # output = crnn(parsed_images)
+    # preds = get_string_crnn(output)
+    # print(preds)
     
-    # # Flatten the images to get the pixel values
-    # image_hr_flat = image_hr.flatten()
-    # image_lr_flat = image_lr.flatten()
+    # Mission = TextBase(config, args)
+    # _, dataloader = Mission.get_train_data()
+    # data = next(iter(dataloader))
+
+    # images_hr, images_lr, interpolated_image_lr, label_strs = data
+    # moran = Mission.MORAN_init()
+    # tensor, length, text, text_rev = Mission.parse_moran_data(images_hr)
     
-    # # Plot histograms of the pixel values
-    # axes[1, 0].hist(image_hr_flat, bins=256, color='blue', alpha=0.7)
-    # axes[1, 0].set_title('Pixel Value Distribution (HR)')
-    # axes[1, 0].set_xlabel('Pixel Value')
-    # axes[1, 0].set_ylabel('Frequency')
+    # print(tensor.shape, length.shape, text.shape, text_rev.shape)
+    # output = moran(tensor, length, text, text_rev, test = True , debug = True)
+    # preds, preds_reverse = output[0]
+    # _, preds = preds.max(1)
+    # sim_preds = Mission.converter_moran.decode(preds.data, length.data)
+    # sim_preds = list(map(lambda x: x.strip().split('$')[0], sim_preds))
+    # print(sim_preds)
     
-    # axes[1, 1].hist(image_lr_flat, bins=256, color='green', alpha=0.7)
-    # axes[1, 1].set_title('Pixel Value Distribution (LR)')
-    # axes[1, 1].set_xlabel('Pixel Value')
-    # axes[1, 1].set_ylabel('Frequency')
-    
-    # fig.suptitle(f'Label: {label_strs[0]}')
-    # plt.savefig('fig2.png')
-    # plt.show()
+    # Mission = TextBase(config, args)
+    # _, dataloader = Mission.get_train_data()
+    # data = next(iter(dataloader))
+
+    # images_hr, images_lr, interpolated_image_lr, label_strs = data
+    # aster, aster_info = Mission.Aster_init()
+    # aster.eval()
+    # input_dic  = Mission.parse_aster_data(images_hr)
+    # return_dic = aster(input_dic)
+    # pred_list, targ_list = get_string_aster(return_dic['output']['pred_rec'],input_dic['rec_targets'],aster_info)
+    # print(pred_list)
+    pass
+
     
 
 if __name__ == '__main__':

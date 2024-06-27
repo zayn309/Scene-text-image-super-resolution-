@@ -21,9 +21,8 @@ from model import crnn
 
 from dataset import lmdbDataset, alignCollate_real, ConcatDataset, lmdbDataset_real, alignCollate_syn, lmdbDataset_mix
 
-
-
 from utils.labelmaps import get_vocabulary, labels2strs
+from Model import model_sr
 
 sys.path.append('../')
 from utils import util, ssim_psnr, utils_moran, utils_crnn
@@ -64,7 +63,7 @@ class TextBase(object):
         alphabet_moran = ':'.join(string.digits+string.ascii_lowercase+'$')
         self.converter_moran = utils_moran.strLabelConverterForAttention(alphabet_moran, ':')
         self.converter_crnn = utils_crnn.strLabelConverter(string.digits + string.ascii_lowercase)
-    # working 
+        
     def get_train_data(self):
         cfg = self.config.TRAIN
         if isinstance(cfg.train_data_dir, list):
@@ -74,7 +73,7 @@ class TextBase(object):
                     self.load_dataset(root=data_dir_,
                                       voc_type=cfg.voc_type,
                                       max_len=cfg.max_len))
-            train_dataset = dataset.ConcatDataset(dataset_list)
+            train_dataset = ConcatDataset(dataset_list)
         else:
             raise TypeError('check trainRoot')
 
@@ -113,13 +112,12 @@ class TextBase(object):
             drop_last=False)
         return test_dataset, test_loader
     
-    # generatpre not implemented yet
+   
     def generator_init(self):
         cfg = self.config.TRAIN
-        pass
-    
-    
-    
+        model = model_sr()
+        return model
+        
     def optimizer_init(self, model):
         cfg = self.config.TRAIN
         optimizer = optim.Adam(model.parameters(), lr=cfg.lr,
@@ -127,8 +125,7 @@ class TextBase(object):
         return optimizer
 
     def tripple_display(self, image_in, image_out, image_target, pred_str_lr, pred_str_sr, label_strs, index):
-        for i in (range(min(image_in.shape[0], self.config.TRAIN.VAL.n_vis) )):
-            # embed()
+        for i in (range(min(image_in.shape[0], self.config.TRAIN.VAL.n_vis))):
             tensor_in = image_in[i][:3,:,:]
             transform = transforms.Compose(
                 [transforms.ToPILImage(),
@@ -150,7 +147,7 @@ class TextBase(object):
                 os.mkdir(out_path)
             im_name = pred_str_lr[i] + '_' + pred_str_sr[i] + '_' + label_strs[i] + '_.png'
             im_name = im_name.replace('/', '')
-            if index is not 0:
+            if index != 0 :
                 torchvision.utils.save_image(vis_im, os.path.join(out_path, im_name), padding=0)
 
     def test_display(self, image_in, image_out, image_target, pred_str_lr, pred_str_sr, label_strs, str_filt):
@@ -202,21 +199,30 @@ class TextBase(object):
 
     def MORAN_init(self):
         cfg = self.config.TRAIN
-        alphabet = ':'.join(string.digits+string.ascii_lowercase+'$')
-        MORAN = moran.MORAN(1, len(alphabet.split(':')), 256, 32, 100, BidirDecoder=True,
-                            inputDataType='torch.cuda.FloatTensor', CUDA=True)
+        alphabet = ':'.join(string.digits + string.ascii_lowercase + '$')
+        MORAN = moran.MORAN(1, len(alphabet.split(':')), 256, 32, 100, BidirDecoder=True, inputDataType='torch.FloatTensor', CUDA=False)
+        
         model_path = self.config.TRAIN.VAL.moran_pretrained
         print('loading pre-trained moran model from %s' % model_path)
-        state_dict = torch.load(model_path)
+        
+        # Load the model to CPU
+        state_dict = torch.load(model_path, map_location=torch.device('cpu'))
+        
         MORAN_state_dict_rename = OrderedDict()
         for k, v in state_dict.items():
             name = k.replace("module.", "")  # remove `module.`
             MORAN_state_dict_rename[name] = v
+        
         MORAN.load_state_dict(MORAN_state_dict_rename)
-        MORAN = MORAN.to(self.device)
-        MORAN = torch.nn.DataParallel(MORAN, device_ids=range(cfg.ngpu))
+        MORAN = MORAN.to(self.device)  # Ensure the device is set correctly
+        
+        # DataParallel is not necessary for CPU, but if you want to keep it, ensure it's set for CPU
+        if torch.cuda.device_count() > 1:
+            MORAN = torch.nn.DataParallel(MORAN)
+        
         for p in MORAN.parameters():
             p.requires_grad = False
+        
         MORAN.eval()
         return MORAN
 
@@ -254,13 +260,32 @@ class TextBase(object):
     def Aster_init(self):
         cfg = self.config.TRAIN
         aster_info = AsterInfo(cfg.voc_type)
-        aster = recognizer.RecognizerBuilder(arch='ResNet_ASTER', rec_num_classes=aster_info.rec_num_classes,
-                                             sDim=512, attDim=512, max_len_labels=aster_info.max_len,
-                                             eos=aster_info.char2id[aster_info.EOS], STN_ON=True)
-        aster.load_state_dict(torch.load(self.config.TRAIN.VAL.rec_pretrained)['state_dict'])
-        print('load pred_trained aster model from %s' % self.config.TRAIN.VAL.rec_pretrained)
-        aster = aster.to(self.device)
-        aster = torch.nn.DataParallel(aster, device_ids=range(cfg.ngpu))
+        aster = recognizer.RecognizerBuilder(
+            arch='ResNet_ASTER',
+            rec_num_classes=aster_info.rec_num_classes,
+            sDim=512,
+            attDim=512,
+            max_len_labels=aster_info.max_len,
+            eos=aster_info.char2id[aster_info.EOS],
+            STN_ON=True
+        )
+
+        # Determine the device to load the model on
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        # Load the state dict on the appropriate device
+        state_dict = torch.load(self.config.TRAIN.VAL.aster_pretrained, map_location=device)['state_dict']
+        aster.load_state_dict(state_dict)
+        
+        print('Loaded pre-trained aster model from %s' % self.config.TRAIN.VAL.aster_pretrained)
+        
+        # Move the model to the appropriate device
+        aster = aster.to(device)
+
+        # Use DataParallel if CUDA is available and multiple GPUs are available
+        if torch.cuda.is_available() and cfg.ngpu > 1:
+            aster = torch.nn.DataParallel(aster, device_ids=range(cfg.ngpu))
+        
         return aster, aster_info
 
     def parse_aster_data(self, imgs_input):
@@ -268,12 +293,11 @@ class TextBase(object):
         aster_info = AsterInfo(cfg.voc_type)
         input_dict = {}
         images_input = imgs_input.to(self.device)
-        input_dict['images'] = images_input * 2 - 1
+        input_dict['images'] = images_input
         batch_size = images_input.shape[0]
         input_dict['rec_targets'] = torch.IntTensor(batch_size, aster_info.max_len).fill_(1)
         input_dict['rec_lengths'] = [aster_info.max_len] * batch_size
         return input_dict
-
 
 class AsterInfo(object):
     def __init__(self, voc_type):
@@ -288,3 +312,8 @@ class AsterInfo(object):
         self.char2id = dict(zip(self.voc, range(len(self.voc))))
         self.id2char = dict(zip(range(len(self.voc)), self.voc))
         self.rec_num_classes = len(self.voc)
+
+    def __str__(self):
+        return (f"AsterInfo(voc_type={self.voc_type}, EOS={self.EOS}, max_len={self.max_len}, "
+                f"PADDING={self.PADDING}, UNKNOWN={self.UNKNOWN}, voc_size={len(self.voc)}, "
+                f"rec_num_classes={self.rec_num_classes})")

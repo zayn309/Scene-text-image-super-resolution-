@@ -4,9 +4,8 @@ TRAIN:
   train_data_dir: [
     '../dataset/lmdb/str/TextZoom/train1',
     '../dataset/lmdb/str/TextZoom/train2',
-  ]
-   
-  batch_size: 2
+  ] 
+  batch_size: 8
   width: 128
   height: 32
   epochs: 500
@@ -15,9 +14,9 @@ TRAIN:
   workers: 0
   resume: ''
   ckpt_dir: './ckpt/'
-  voc_type: 'all' #'digits lower upper all'
+  voc_type: 'all' 
   saveInterval: 200
-  displayInterval: 100 #display loss
+  displayInterval: 100 
   adadelta: False
   lr: 0.001
   adam: True
@@ -36,9 +35,9 @@ TRAIN:
     n_vis: 10
     vis_dir: 'demo'
     valInterval: 200 #-1, val at the end of epoch
-    rec_pretrained: 'demo.pth.tar'
-    moran_pretrained: 'moran.pth'
-    crnn_pretrained: 'crnn.pth'
+    aster_pretrained: './pretrained_rec_weights/Aster.pth.tar'
+    moran_pretrained: './pretrained_rec_weights/Moran.pth'
+    crnn_pretrained: './pretrained_rec_weights/crnn.pth'
 
 TEST:
   checkpoint: ''

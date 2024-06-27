@@ -12,6 +12,77 @@ sys.path.append('../')
 from utils import to_torch, to_numpy
 
 
+def get_string_aster(output, target, dataset=None):
+    # label_seq
+    assert output.dim() == 2 and target.dim() == 2
+
+    end_label = dataset.char2id[dataset.EOS]
+    unknown_label = dataset.char2id[dataset.UNKNOWN]
+    num_samples, max_len_labels = output.size()
+    num_classes = len(dataset.char2id.keys())
+    assert num_samples == target.size(0) and max_len_labels == target.size(1)
+    output = to_numpy(output)
+    target = to_numpy(target)
+
+    # list of char list
+    pred_list, targ_list = [], []
+    for i in range(num_samples):
+        pred_list_i = []
+        for j in range(max_len_labels):
+            if output[i, j] != end_label:
+                if output[i, j] != unknown_label:
+                    try:
+                        pred_list_i.append(dataset.id2char[output[i, j]])
+                    except:
+                        embed(header='problem')
+            else:
+                break
+        pred_list.append(pred_list_i)
+
+    for i in range(num_samples):
+        targ_list_i = []
+        for j in range(max_len_labels):
+            if target[i, j] != end_label:
+                if target[i, j] != unknown_label:
+                    targ_list_i.append(dataset.id2char[target[i, j]])
+            else:
+                break
+        targ_list.append(targ_list_i)
+
+    # char list to string
+    # if dataset.lowercase:
+    if True:
+        # pred_list = [''.join(pred).lower() for pred in pred_list]
+        # targ_list = [''.join(targ).lower() for targ in targ_list]
+        pred_list = [_normalize_text(pred) for pred in pred_list]
+        targ_list = [_normalize_text(targ) for targ in targ_list]
+    else:
+        pred_list = [''.join(pred) for pred in pred_list]
+        targ_list = [''.join(targ) for targ in targ_list]
+
+    return pred_list, targ_list
+
+
+def get_string_crnn(outputs_, alphabet='-0123456789abcdefghijklmnopqrstuvwxyz'):
+    outputs = outputs_.permute(1, 0, 2).contiguous()
+    predict_result = []
+    for output in outputs:
+        max_index = torch.max(output, 1)[1]
+
+        out_str = ""
+        last = ""
+        for i in max_index:
+            if alphabet[i] != last:
+                if i != 0:
+                    out_str += alphabet[i]
+                    last = alphabet[i]
+                else:
+                    last = ""
+
+        predict_result.append(out_str)
+    return predict_result
+
+
 def _normalize_text(text):
     text = ''.join(filter(lambda x: x in (string.digits + string.ascii_letters), text))
     return text.lower()
