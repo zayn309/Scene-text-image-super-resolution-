@@ -88,13 +88,14 @@ class TextBase(object):
     def get_val_data(self):
         cfg = self.config.TRAIN
         assert isinstance(cfg.VAL.val_data_dir, list)
-        dataset_list = []
-        loader_list = []
+        dataset_dic = {}
+        loader_dic = {}
         for data_dir_ in cfg.VAL.val_data_dir:
+            name = os.path.basename(data_dir_)
             val_dataset, val_loader = self.get_test_data(data_dir_)
-            dataset_list.append(val_dataset)
-            loader_list.append(val_loader)
-        return dataset_list, loader_list
+            dataset_dic[name] = val_dataset
+            loader_dic[name] = val_loader
+        return dataset_dic, loader_dic
     # working   
     def get_test_data(self, dir_):
         cfg = self.config.TRAIN
@@ -111,8 +112,7 @@ class TextBase(object):
                                           mask=self.mask),
             drop_last=False)
         return test_dataset, test_loader
-    
-   
+
     def generator_init(self):
         cfg = self.config.TRAIN
         model = model_sr()
@@ -125,59 +125,10 @@ class TextBase(object):
         return optimizer
 
     def tripple_display(self, image_in, image_out, image_target, pred_str_lr, pred_str_sr, label_strs, index):
-        for i in (range(min(image_in.shape[0], self.config.TRAIN.VAL.n_vis))):
-            tensor_in = image_in[i][:3,:,:]
-            transform = transforms.Compose(
-                [transforms.ToPILImage(),
-                 transforms.Resize((image_target.shape[-2], image_target.shape[-1]), interpolation=Image.BICUBIC),
-                 transforms.ToTensor()]
-            )
-
-            tensor_in = transform(tensor_in.cpu())
-            tensor_out = image_out[i][:3,:,:]
-            tensor_target = image_target[i][:3,:,:]
-            images = ([tensor_in, tensor_out.cpu(), tensor_target.cpu()])
-            vis_im = torch.stack(images)
-            vis_im = torchvision.utils.make_grid(vis_im, nrow=1, padding=0)
-            out_root = os.path.join('./demo', self.vis_dir)
-            if not os.path.exists(out_root):
-                os.mkdir(out_root)
-            out_path = os.path.join(out_root, str(index))
-            if not os.path.exists(out_path):
-                os.mkdir(out_path)
-            im_name = pred_str_lr[i] + '_' + pred_str_sr[i] + '_' + label_strs[i] + '_.png'
-            im_name = im_name.replace('/', '')
-            if index != 0 :
-                torchvision.utils.save_image(vis_im, os.path.join(out_path, im_name), padding=0)
+        pass
 
     def test_display(self, image_in, image_out, image_target, pred_str_lr, pred_str_sr, label_strs, str_filt):
-        visualized = 0
-        for i in (range(image_in.shape[0])):
-            if True:
-                if (str_filt(pred_str_lr[i], 'lower') != str_filt(label_strs[i], 'lower')) and \
-                        (str_filt(pred_str_sr[i], 'lower') == str_filt(label_strs[i], 'lower')):
-                    visualized += 1
-                    tensor_in = image_in[i].cpu()
-                    tensor_out = image_out[i].cpu()
-                    tensor_target = image_target[i].cpu()
-                    transform = transforms.Compose(
-                        [transforms.ToPILImage(),
-                         transforms.Resize((image_target.shape[-2], image_target.shape[-1]), interpolation=Image.BICUBIC),
-                         transforms.ToTensor()]
-                    )
-                    tensor_in = transform(tensor_in)
-                    images = ([tensor_in, tensor_out, tensor_target])
-                    vis_im = torch.stack(images)
-                    vis_im = torchvision.utils.make_grid(vis_im, nrow=1, padding=0)
-                    out_root = os.path.join('./display', self.vis_dir)
-                    if not os.path.exists(out_root):
-                        os.mkdir(out_root)
-                    if not os.path.exists(out_root):
-                        os.mkdir(out_root)
-                    im_name = pred_str_lr[i] + '_' + pred_str_sr[i] + '_' + label_strs[i] + '_.png'
-                    im_name = im_name.replace('/', '')
-                    torchvision.utils.save_image(vis_im, os.path.join(out_root, im_name), padding=0)
-        return visualized
+        pass
 
     def save_checkpoint(self, netG, epoch, iters, best_acc_dict, best_model_info, is_best, converge_list):
         ckpt_path = os.path.join('ckpt', self.vis_dir)
@@ -224,7 +175,7 @@ class TextBase(object):
             p.requires_grad = False
         
         MORAN.eval()
-        return MORAN
+        return MORAN.eval()
 
     def parse_moran_data(self, imgs_input):
         batch_size = imgs_input.shape[0]
@@ -247,7 +198,7 @@ class TextBase(object):
         model_path = self.config.TRAIN.VAL.crnn_pretrained
         print('loading pretrained crnn model from %s' % model_path)
         model.load_state_dict(torch.load(model_path))
-        return model
+        return model.eval()
 
     def parse_crnn_data(self, imgs_input):
         imgs_input = torch.nn.functional.interpolate(imgs_input, (32, 100), mode='bicubic')
@@ -286,7 +237,7 @@ class TextBase(object):
         if torch.cuda.is_available() and cfg.ngpu > 1:
             aster = torch.nn.DataParallel(aster, device_ids=range(cfg.ngpu))
         
-        return aster, aster_info
+        return aster.eval(), aster_info
 
     def parse_aster_data(self, imgs_input):
         cfg = self.config.TRAIN

@@ -5,8 +5,8 @@ import sys
 from typing import Tuple
 sys.path.append('../')
 sys.path.append('./')
-from MaxVit import MaxViT
-from upscaler import UpscaleTransformModule
+from model.MaxVit import MaxViT
+from model.upscaler import UpscaleTransformModule
 
 class Generator(nn.Module):
     def __init__(self,

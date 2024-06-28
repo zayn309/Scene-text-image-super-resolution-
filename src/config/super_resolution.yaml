@@ -4,15 +4,15 @@ TRAIN:
   train_data_dir: [
     '../dataset/lmdb/str/TextZoom/train1',
     '../dataset/lmdb/str/TextZoom/train2',
-  ] 
-  batch_size: 8
+  ]
+  batch_size: 256
   width: 128
   height: 32
   epochs: 500
   cuda: false
   ngpu: 0
   workers: 0
-  resume: ''
+  resume: False
   ckpt_dir: './ckpt/'
   voc_type: 'all' 
   saveInterval: 200
@@ -25,6 +25,16 @@ TRAIN:
   max_len: 100
   keep_ratio: False
   down_sample_scale: 2
+
+  loss:
+    gamma: 4
+    alpha: 0.7
+    beta: 0.7
+
+  LR_Scheduler:
+    initial_lr: 0.001
+    final_lr: 0.00001
+    decay_factor: 0.5
 
   VAL:
     val_data_dir: [

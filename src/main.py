@@ -16,6 +16,12 @@ warnings.filterwarnings('ignore')
 
 
 def main(config, args):
+    Mission = TextBase(config, args)
+    datasets, dataloaders = Mission.get_val_data()
+    
+    print(dataloaders)
+    
+    
     # Mission = TextBase(config, args)
     # _, dataloader = Mission.get_train_data()
     # data = next(iter(dataloader))
@@ -61,7 +67,7 @@ def main(config, args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('--arch', default='tsrn', choices=['tsrn', 'bicubic', 'srcnn', 'vdsr', 'srres', 'esrgan', 'rdn',
+    parser.add_argument('--arch', default='tp_maxVit', choices=['tsrn', 'bicubic', 'srcnn', 'vdsr', 'srres', 'esrgan', 'rdn',
                                                            'edsr', 'lapsrn'])
     parser.add_argument('--test', action='store_true', default=False)
     parser.add_argument('--test_data_dir', type=str, default='../dataset/lmdb/str/TextZoom/test/medium/', help='')

@@ -5,7 +5,7 @@ import sys
 
 sys.path.append('../')
 sys.path.append('./')
-from MaxVit_comp import MaxViTStage
+from model.MaxVit_comp import MaxViTStage
 
 
 class MaxViT(nn.Module):
