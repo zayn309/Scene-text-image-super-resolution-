@@ -64,8 +64,6 @@ class RecognizerBuilder(nn.Module):
 
     def forward(self, input_dict):
         return_dict = {}
-        return_dict['losses'] = {}
-        return_dict['output'] = {}
 
         x, rec_targets, rec_lengths = input_dict['images'], \
                                       input_dict['rec_targets'], \
@@ -87,20 +85,11 @@ class RecognizerBuilder(nn.Module):
 
         if self.training:
             rec_pred = self.decoder([encoder_feats, rec_targets, rec_lengths])
-            loss_rec = self.rec_crit(rec_pred, rec_targets, rec_lengths)
-            return_dict['losses']['loss_rec'] = loss_rec
         else:
             
             rec_pred, rec_pred_scores = self.decoder.beam_search(encoder_feats, beam_width, self.eos)
-            rec_pred_ = self.decoder([encoder_feats, rec_targets, rec_lengths])
-            loss_rec = self.rec_crit(rec_pred_, rec_targets, rec_lengths)
-            return_dict['losses']['loss_rec'] = loss_rec
             return_dict['output']['pred_rec'] = rec_pred
             return_dict['output']['pred_rec_score'] = rec_pred_scores
-
-        # pytorch0.4 bug on gathering scalar(0-dim) tensors
-        for k, v in return_dict['losses'].items():
-            return_dict['losses'][k] = v.unsqueeze(0)
 
         return return_dict
 
