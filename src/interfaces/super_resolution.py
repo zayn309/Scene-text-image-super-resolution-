@@ -108,6 +108,8 @@ class TextSR(TextBase):
                     self.save_checkpoint(self.model,epoch,self.opt,self.epochs,epoch_losses,is_best=True)
                 else:
                     self.save_checkpoint(self.model,epoch,self.opt,self.epochs,epoch_losses,is_best=False)
+            if self.config.TRAIN.displayInterval % epoch:
+                self.monitor_loss()
         
     def eval_loss_metrics(self,epoch):
         self.model.eval()  # Set the model to evaluation mode
@@ -132,7 +134,7 @@ class TextSR(TextBase):
                 if epoch % self.config.TRAIN.displayInterval == 0 and idx == 0:
                     returned_str = self.run_aster(images_hr[0:2],interpolated_image_lr[0:2],sr_output[0:2])
                     self.visualize_and_save(images_lr[0:2],images_hr[0:2],sr_output[0:2],returned_str['lr'],returned_str['sr'],returned_str['hr'],epoch)
-                    self.monitor_loss()
+                    
                 loss_dic = self.cri(sr_output, images_hr, TP_lr, TP_hr)
                 
                 loss = loss_dic['total_loss']
