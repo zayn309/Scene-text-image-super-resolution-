@@ -149,11 +149,11 @@ class TextBase(object):
         
         # Move tensors to CPU if they are on CUDA
         if LR.is_cuda:
-            LR = LR.cpu().permute(1,2,0)
+            LR = LR.cpu().permute(0,2,3,1)
         if HR.is_cuda:
-            HR = HR.cpu().permute(1,2,0)
+            HR = HR.cpu().permute(0,2,3,1)
         if SR.is_cuda:
-            SR = SR.cpu().permute(1,2,0)
+            SR = SR.cpu().permute(0,2,3,1)
         
         fig, axes = plt.subplots(3, num_images, figsize=(10, 10))
         
