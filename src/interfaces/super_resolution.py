@@ -83,6 +83,7 @@ class TextSR(TextBase):
                     ssim = self.cal_ssim((sr_output+1) / 2,(images_hr + 1) / 2)
                     epoch_losses['psnr'] += psnr.item()
                     epoch_losses['ssim'] += ssim.item()
+                break
                 #del images_hr, images_lr, interpolated_image_lr, sr_output, TP_lr, TP_hr, loss_dic
                 #torch.cuda.empty_cache()
                 
@@ -93,10 +94,10 @@ class TextSR(TextBase):
             epoch_losses['total_loss'] = epoch_losses['total_loss'] / num_batched
             epoch_losses['psnr'] /= num_batched
             epoch_losses['ssim'] /= num_batched
+            self.train_convergence_list.append(epoch_losses)
             print(f'loss for epoch {epoch}')
             print('train loss: ')
             pprint(self.train_convergence_list[-1])
-            self.train_convergence_list.append(epoch_losses)
             self.eval_loss_metrics()
             print('validation loss: ')
             pprint(self.val_convergence_list[-1])
