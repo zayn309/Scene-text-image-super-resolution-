@@ -16,7 +16,7 @@ TRAIN:
   ckpt_dir: './ckpt/'
   voc_type: 'all' 
   saveInterval: 10
-  displayInterval: 5
+  displayInterval: 2
   adadelta: False
   lr: 0.001
   adam: True

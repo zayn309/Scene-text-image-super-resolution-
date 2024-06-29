@@ -186,7 +186,7 @@ class TextSR(TextBase):
     def run_aster(self, images_hr, images_lr, images_sr):
         OCR_output = {}
         with torch.no_grad():
-            aster, aster_info = self.eval_OCR['aster']
+            aster, aster_info = self.eval_models_dic['aster']
             
             input_dic_lr = self.parse_aster_data(images_lr)
             input_dic_hr = self.parse_aster_data(images_hr)
