@@ -98,7 +98,7 @@ class TextSR(TextBase):
             print(f'loss for epoch {epoch}')
             print('train loss: ')
             pprint(self.train_convergence_list[-1])
-            self.eval_loss_metrics()
+            self.eval_loss_metrics(epoch)
             print('validation loss: ')
             pprint(self.val_convergence_list[-1])
             print('--------------------------------')
