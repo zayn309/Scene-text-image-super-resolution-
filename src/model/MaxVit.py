@@ -88,7 +88,6 @@ class MaxViT(nn.Module):
         
         
     def forward(self, input: torch.Tensor, TP_features: torch.Tensor) -> torch.Tensor:
-        
         """ Forward pass of feature extraction.
 
         Args:
@@ -97,8 +96,7 @@ class MaxViT(nn.Module):
         Returns:
             output (torch.Tensor): Image features of the backbone.
         """
-        # the intial conv
-        
+        # Initial convolution and activation
         initial = self.act1(self.conv1(input))
         out = self.act2(self.conv2(initial))
         stages_output = []
@@ -106,19 +104,22 @@ class MaxViT(nn.Module):
         for idx, stage in enumerate(self.stages):
             skip_input = out
             out = stage(out)
-            if idx != len(self.stages) - 1: 
-                stages_output.append(out)
-            out = torch.cat((out,TP_features),dim = 1)
-            out = self.tp_projection[idx](out)
-            out = out + skip_input
             
+            if idx != len(self.stages) - 1:
+                stages_output.append(out)
+                
+            out = torch.cat((out, TP_features), dim=1)
+            out = self.tp_projection[idx](out)
+            out += skip_input  # In-place addition
+
+        # Concatenate outputs of all stages except the last one
         concatenated_output = torch.cat(stages_output, dim=1)
-        
         projected_output = self.proj(concatenated_output)
         
-        out = self.act3(out + projected_output)
-        
-        output = self.act4(self.conv3(out) + initial)
+        out += projected_output  # In-place addition
+        out = self.act3(out)
+
+        output = self.act4(self.conv3(out) + initial)  # In-place addition
 
         return output
 

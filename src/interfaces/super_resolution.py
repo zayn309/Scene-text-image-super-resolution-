@@ -78,14 +78,13 @@ class TextSR(TextBase):
                 
                 # Gradient descent or adam step
                 self.opt.step()
-                
-                psnr = self.cal_psnr((sr_output+1) / 2,(images_hr + 1) / 2) # adding 1 and dividing by two to reverse the normalization
-                ssim = self.cal_ssim((sr_output+1) / 2,(images_hr + 1) / 2)
+                with torch.no_grad():
+                    psnr = self.cal_psnr((sr_output+1) / 2,(images_hr + 1) / 2) # adding 1 and dividing by two to reverse the normalization
+                    ssim = self.cal_ssim((sr_output+1) / 2,(images_hr + 1) / 2)
                 epoch_losses['psnr'] += psnr
                 epoch_losses['ssim'] += ssim
-                torch.cuda.empty_cache()
-                
-                
+                del images_hr, images_lr, interpolated_image_lr, sr_output, TP_lr, TP_hr, loss_dic
+                #torch.cuda.empty_cache()
                 
             num_batched = len(self.train_loader)
             epoch_losses['charbonnier_loss'] = epoch_losses['charbonnier_loss'] / num_batched
