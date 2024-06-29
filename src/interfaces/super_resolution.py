@@ -86,13 +86,13 @@ class TextSR(TextBase):
                 #del images_hr, images_lr, interpolated_image_lr, sr_output, TP_lr, TP_hr, loss_dic
                 #torch.cuda.empty_cache()
                 
-            # num_batched = len(self.train_loader)
-            # epoch_losses['charbonnier_loss'] = epoch_losses['charbonnier_loss'] / num_batched
-            # epoch_losses['kl_loss'] = epoch_losses['kl_loss'] / num_batched
-            # epoch_losses['l1_loss'] = epoch_losses['l1_loss']/ num_batched
-            # epoch_losses['total_loss'] = epoch_losses['total_loss'] / num_batched
-            # epoch_losses['psnr'] /= num_batched
-            # epoch_losses['ssim'] /= num_batched
+            num_batched = len(self.train_loader)
+            epoch_losses['charbonnier_loss'] = epoch_losses['charbonnier_loss'] / num_batched
+            epoch_losses['kl_loss'] = epoch_losses['kl_loss'] / num_batched
+            epoch_losses['l1_loss'] = epoch_losses['l1_loss']/ num_batched
+            epoch_losses['total_loss'] = epoch_losses['total_loss'] / num_batched
+            epoch_losses['psnr'] /= num_batched
+            epoch_losses['ssim'] /= num_batched
             self.train_convergence_list.append(epoch_losses)
             print(f'loss for epoch {epoch}')
             print('train loss: ')
