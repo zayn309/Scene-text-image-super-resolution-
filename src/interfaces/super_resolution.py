@@ -169,9 +169,9 @@ class TextSR(TextBase):
         
         plt.figure(figsize=(10, 6))
         
-        plt.plot(epochs, self.train_convergence_list['total_loss'], label='Train Total Loss')
+        plt.plot(epochs, self.train_convergence_list[-1]['total_loss'], label='Train Total Loss')
         
-        plt.plot(epochs, self.val_convergence_list['total_loss'], label='Val Total Loss')
+        plt.plot(epochs, self.val_convergence_list[-1]['total_loss'], label='Val Total Loss')
         
         plt.title('Training and Validation Losses')
         plt.xlabel('Epoch')
