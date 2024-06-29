@@ -18,8 +18,8 @@ class TextSR(TextBase):
         
         self.opt = self.optimizer_init(self.model)
         
-        if self.config.resume:
-            self.load_checkpoint(self.config.resume,self.config.new_lr)
+        if self.config.TRAIN.resume:
+            self.load_checkpoint(self.config.TRAIN.resume,self.config.TRAIN.new_lr)
             
         self.eval_models_dic = {'aster': self.Aster_init(),}
         #                         'moran':self.MORAN_init(),
@@ -32,7 +32,7 @@ class TextSR(TextBase):
         self.scheduler = LR_Scheduler(self.opt,self.config)
         self.train_convergence_list = []
         self.val_convergence_list = []
-        self.epochs = self.config.epochs
+        self.epochs = self.config.TRAIN.epochs
         self.best_loss = float('inf')
         
     def train(self):
@@ -96,7 +96,7 @@ class TextSR(TextBase):
             pprint(self.val_convergence_list[-1])
             print('--------------------------------')
             self.scheduler.step(epoch)
-            if epoch % self.config.saveInterval == 0:
+            if epoch % self.config.TRAIN.saveInterval == 0:
                 if epoch_losses['total_loss'] < self.best_loss:
                     self.save_checkpoint(self.model,epoch,self.opt,self.epochs,epoch_losses,is_best=True)
                 else:
@@ -122,7 +122,7 @@ class TextSR(TextBase):
                 sr_output, TP_lr = self.model(images_lr, interpolated_image_lr)
                 TP_hr = self.model.tp_module.generate_tp(images_hr)
                 
-                if epoch % self.config.displayInterval == 0 and idx == 0:
+                if epoch % self.config.TRAIN.displayInterval == 0 and idx == 0:
                     returned_str = self.run_aster(images_hr[0:2],interpolated_image_lr[0:2],sr_output[0:2])
                     self.visualize_and_save(images_lr[0:2],images_hr[0:2],sr_output[0:2],returned_str['lr'],returned_str['sr'],returned_str['hr'],epoch)
                     
@@ -157,7 +157,7 @@ class TextSR(TextBase):
 
     def monitor_loss(self):
         
-        plot_path = os.path.join(self.config.VAL.vis_dir, 'loss_plot.png')
+        plot_path = os.path.join(self.config.TRAIN.VAL.vis_dir, 'loss_plot.png')
         epochs = range(1, len(self.train_convergence_list) + 1)
         
         plt.figure(figsize=(10, 6))

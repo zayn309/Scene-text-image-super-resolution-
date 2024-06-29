@@ -3,9 +3,9 @@ from torch.optim.lr_scheduler import _LRScheduler
 class LR_Scheduler(_LRScheduler):
     def __init__(self, optimizer, config):
         self.config = config
-        self.initial_lr = self.config.LR_Scheduler.initial_lr
-        self.final_lr = self.config.LR_Scheduler.final_lr
-        self.decay_factor = self.config.LR_Scheduler.decay_factor
+        self.initial_lr = self.config.TRAIN.LR_Scheduler.initial_lr
+        self.final_lr = self.config.TRAIN.LR_Scheduler.final_lr
+        self.decay_factor = self.config.TRAIN.LR_Scheduler.decay_factor
         self.current_lr = self.initial_lr
         self.optimizer = optimizer
         super(LR_Scheduler, self).__init__(optimizer)

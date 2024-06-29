@@ -11,9 +11,9 @@ class TotalLoss(nn.Module):
         self.charbonnier_loss = CharbonnierLoss()
         self.tp_kl_loss = TP_KlLoss()
         self.tp_l1_loss = TP_L1Loss()
-        self.gamma = self.config.loss.gamma
-        self.beta = self.config.beta
-        self.alpha = self.config.alpha 
+        self.gamma = self.config.TRAIN.loss.gamma
+        self.beta = self.config.TRAIN.loss.beta
+        self.alpha = self.config.TRAIN.loss.alpha 
         
 
     def forward(self, sr, hr, TP_lr, TP_hr):
