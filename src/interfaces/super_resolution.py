@@ -38,6 +38,7 @@ class TextSR(TextBase):
         self.val_convergence_list = []
         self.epochs = self.config.TRAIN.epochs
         self.best_loss = float('inf')
+        print(f'the training is done on {self.device}')
         
     def train(self):
         loop = tqdm(self.train_loader, leave=True)
