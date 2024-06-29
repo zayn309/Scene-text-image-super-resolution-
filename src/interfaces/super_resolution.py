@@ -92,8 +92,8 @@ class TextSR(TextBase):
             epoch_losses['kl_loss'] = epoch_losses['kl_loss'] #/ num_batched
             epoch_losses['l1_loss'] = epoch_losses['l1_loss']#/ num_batched
             epoch_losses['total_loss'] = epoch_losses['total_loss'] #/ num_batched
-            epoch_losses['psnr'] #/= num_batched
-            epoch_losses['ssim'] #/= num_batched
+            epoch_losses['psnr'].item() #/= num_batched
+            epoch_losses['ssim'].item() #/= num_batched
             self.train_convergence_list.append(epoch_losses)
             print(f'loss for epoch {epoch}')
             print('train loss: ')
@@ -143,8 +143,8 @@ class TextSR(TextBase):
                 val_losses['kl_loss'] += loss_dic['kl_loss']
                 val_losses['l1_loss'] += loss_dic['l1_loss']
                 val_losses['total_loss'] += loss.item()
-                val_losses['psnr'] += psnr
-                val_losses['ssim'] += ssim
+                val_losses['psnr'] += psnr.item()
+                val_losses['ssim'] += ssim.item()
                 
         
         num_batches = len(self.val_dataloader_medium)
