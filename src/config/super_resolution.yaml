@@ -5,10 +5,10 @@ TRAIN:
     '../dataset/lmdb/str/TextZoom/train1',
     '../dataset/lmdb/str/TextZoom/train2',
   ]
-  batch_size: 8
+  batch_size: 32
   width: 128
   height: 32
-  epochs: 500
+  epochs: 50
   cuda: false
   ngpu: 0
   workers: 0
