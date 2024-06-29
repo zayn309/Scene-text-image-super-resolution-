@@ -25,8 +25,12 @@ class TextSR(TextBase):
         #                         'moran':self.MORAN_init(),
         #                         'crnn': self.CRNN_init()}
         
-        self.train_loader = self.get_train_data()
-        self.val_dataset, self.val_loader = self.get_val_data()
+        train_dataset, train_loader = self.get_train_data()
+        self.train_dataset = train_dataset
+        self.train_loader = train_loader
+        val_dataset, val_loader = self.get_val_data()
+        self.val_dataset = val_dataset
+        self.val_loader = val_loader
         self.val_dataloader_medium = self.val_loader['medium']
         self.cri = TotalLoss(self.config)
         self.scheduler = LR_Scheduler(self.opt,self.config)
