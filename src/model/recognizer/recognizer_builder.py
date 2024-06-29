@@ -64,6 +64,7 @@ class RecognizerBuilder(nn.Module):
 
     def forward(self, input_dict):
         return_dict = {}
+        return_dict['output'] = {}
 
         x, rec_targets, rec_lengths = input_dict['images'], \
                                       input_dict['rec_targets'], \
@@ -91,6 +92,7 @@ class RecognizerBuilder(nn.Module):
             return_dict['output']['pred_rec'] = rec_pred
             return_dict['output']['pred_rec_score'] = rec_pred_scores
 
+       
         return return_dict
 
 
