@@ -22,7 +22,7 @@ class TotalLoss(nn.Module):
         tp_l1_loss = self.tp_l1_loss(TP_lr, TP_hr)
         
         total_loss = (self.gamma * charbonnier_loss) + (self.alpha * tp_kl_loss) + (self.beta * tp_l1_loss)
-        return {'ch_loss': charbonnier_loss.item(),
+        return {'charbonnier_loss': charbonnier_loss.item(),
                 'kl_loss': tp_kl_loss.item(),
                 'l1_loss': tp_l1_loss.item(),
                 'total_loss': total_loss}
