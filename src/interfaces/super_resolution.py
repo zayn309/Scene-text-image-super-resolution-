@@ -168,10 +168,11 @@ class TextSR(TextBase):
         epochs = range(1, len(self.train_convergence_list) + 1)
         
         plt.figure(figsize=(10, 6))
+        total_loss_values_train = [d['total_loss'] for d in self.train_convergence_list]
         
-        plt.plot(epochs, self.train_convergence_list[-1]['total_loss'], label='Train Total Loss')
-        
-        plt.plot(epochs, self.val_convergence_list[-1]['total_loss'], label='Val Total Loss')
+        plt.plot(epochs, total_loss_values_train, label='Train Total Loss')
+        total_loss_values_val = [d['total_loss'] for d in self.val_convergence_list]
+        plt.plot(epochs, total_loss_values_val, label='Val Total Loss')
         
         plt.title('Training and Validation Losses')
         plt.xlabel('Epoch')
