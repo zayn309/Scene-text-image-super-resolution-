@@ -46,16 +46,16 @@ class TP_module(nn.Module):
         self.tp_generator = TP_generator()
         self.tp_transformer = TP_transformer()
     
-    def generate_tp(self,x):
-        x = self.tp_generator(x).log_softmax(-1)
-        return x
+    def generate_tp(self,interpolated_lr_image):
+        out = self.tp_generator(interpolated_lr_image)
+        out = out.log_softmax(-1)
+        return out
         
-    def forward(self,x):
-        x = self.generate_tp(x)
-        shape1 = x.shape[1]
-        shape2 = x.shape[2]
-        x = x.view(-1,1,shape1,shape2)
+    def forward(self,interpolated_lr_image):
+        probs = self.generate_tp(interpolated_lr_image)
         
-        tp_features = self.tp_transformer(x)
-        del shape1, shape2
-        return x, tp_features
+        probs = probs.view(-1,1,probs.shape[1],probs.shape[2])
+        
+        tp_features = self.tp_transformer(probs)
+        
+        return probs, tp_features
