@@ -49,13 +49,11 @@ class TP_module(nn.Module):
     def generate_tp(self,interpolated_lr_image):
         out = self.tp_generator(interpolated_lr_image)
         out = out.log_softmax(-1)
-        return out
+        return out.unsqueeze(1)
         
     def forward(self,interpolated_lr_image):
         probs = self.generate_tp(interpolated_lr_image)
-        
-        probs = probs.view(-1,1,probs.shape[1],probs.shape[2])
-        
+
         tp_features = self.tp_transformer(probs)
         
         return probs, tp_features
