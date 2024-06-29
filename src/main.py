@@ -4,7 +4,7 @@ import argparse
 import os
 from IPython import embed
 from easydict import EasyDict
-from interfaces.base import TextBase 
+from interfaces.super_resolution import TextSR 
 import matplotlib.pyplot as plt
 import numpy as np 
 from TP_Module import TP_module
@@ -21,13 +21,9 @@ def denormalize(tensor, mean=0.5, std=0.5):
     return tensor
 
 def main(config, args):
-    Mission = TextBase(config, args)
-    dataset, dataloader = Mission.get_train_data()
-    data = next(iter(dataloader))
-
-    images_hr, images_lr, interpolated_image_lr, label_strs = data
-    ssim  = Mission.cal_ssim(denormalize(interpolated_image_lr),denormalize(images_hr))
-    print(ssim)
+    Mission = TextSR(config, args)
+    Mission.train()
+    
     # Mission = TextBase(config, args)
     # _, dataloader = Mission.get_train_data()
     # data = next(iter(dataloader))
