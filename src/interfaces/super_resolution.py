@@ -87,13 +87,13 @@ class TextSR(TextBase):
                 #del images_hr, images_lr, interpolated_image_lr, sr_output, TP_lr, TP_hr, loss_dic
                 #torch.cuda.empty_cache()
                 
-            #num_batched = len(self.train_loader)
-            epoch_losses['charbonnier_loss'] = epoch_losses['charbonnier_loss'] #/ num_batched
-            epoch_losses['kl_loss'] = epoch_losses['kl_loss'] #/ num_batched
-            epoch_losses['l1_loss'] = epoch_losses['l1_loss']#/ num_batched
-            epoch_losses['total_loss'] = epoch_losses['total_loss'] #/ num_batched
-            epoch_losses['psnr'].item() #/= num_batched
-            epoch_losses['ssim'].item() #/= num_batched
+            # num_batched = len(self.train_loader)
+            # epoch_losses['charbonnier_loss'] = epoch_losses['charbonnier_loss'] / num_batched
+            # epoch_losses['kl_loss'] = epoch_losses['kl_loss'] / num_batched
+            # epoch_losses['l1_loss'] = epoch_losses['l1_loss']/ num_batched
+            # epoch_losses['total_loss'] = epoch_losses['total_loss'] / num_batched
+            # epoch_losses['psnr'] /= num_batched
+            # epoch_losses['ssim'] /= num_batched
             self.train_convergence_list.append(epoch_losses)
             print(f'loss for epoch {epoch}')
             print('train loss: ')
@@ -132,7 +132,7 @@ class TextSR(TextBase):
                 if epoch % self.config.TRAIN.displayInterval == 0 and idx == 0:
                     returned_str = self.run_aster(images_hr[0:2],interpolated_image_lr[0:2],sr_output[0:2])
                     self.visualize_and_save(images_lr[0:2],images_hr[0:2],sr_output[0:2],returned_str['lr'],returned_str['sr'],returned_str['hr'],epoch)
-                    
+                    self.monitor_loss()
                 loss_dic = self.cri(sr_output, images_hr, TP_lr, TP_hr)
                 
                 loss = loss_dic['total_loss']
