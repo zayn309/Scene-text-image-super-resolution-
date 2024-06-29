@@ -1,4 +1,4 @@
-from base import TextBase
+from interfaces.base import TextBase
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
