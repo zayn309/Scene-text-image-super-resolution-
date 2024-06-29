@@ -166,7 +166,11 @@ class TextSR(TextBase):
 
     def monitor_loss(self):
         
+        os.makedirs(self.config.TRAIN.VAL.vis_dir, exist_ok=True)
+        
         plot_path = os.path.join(self.config.TRAIN.VAL.vis_dir, 'loss_plot.png')
+
+
         epochs = range(1, len(self.train_convergence_list) + 1)
         
         plt.figure(figsize=(10, 6))
@@ -183,8 +187,8 @@ class TextSR(TextBase):
         
         plt.grid(True)
         
-        # Save the plot as PNG
         plt.savefig(plot_path)
+        plt.close()
         
     def run_aster(self, images_hr, images_lr, images_sr):
         OCR_output = {}
