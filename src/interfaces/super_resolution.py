@@ -8,8 +8,10 @@ from LR_schedualer.LR_scheduler import LR_Scheduler
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import os
+import gc
 from pprint import pprint
 from utils.metrics import get_string_aster
+
 
 class TextSR(TextBase):
     def __init__(self, config, args):
@@ -81,6 +83,7 @@ class TextSR(TextBase):
                 ssim = self.cal_ssim((sr_output+1) / 2,(images_hr + 1) / 2)
                 epoch_losses['psnr'] += psnr
                 epoch_losses['ssim'] += ssim
+                torch.cuda.empty_cache()
                 
                 
                 
