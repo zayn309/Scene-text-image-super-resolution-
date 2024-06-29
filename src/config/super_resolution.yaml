@@ -27,8 +27,8 @@ TRAIN:
   down_sample_scale: 2
 
   loss:
-    gamma: 8
-    alpha: 0.2
+    gamma: 5
+    alpha: 0.7
     beta: 0.7
 
   LR_Scheduler:

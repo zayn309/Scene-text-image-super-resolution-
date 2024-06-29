@@ -43,7 +43,6 @@ class TextSR(TextBase):
         print(f'the training is done on {self.device}')
         
     def train(self):
-        loop = tqdm(self.train_loader, leave=True)
         
         for epoch in range(1,self.epochs +1):
             epoch_losses = {
@@ -54,7 +53,8 @@ class TextSR(TextBase):
                 'psnr' : 0,
                 'ssim': 0,
             }
-            for idx, (images_hr, images_lr, interpolated_image_lr, label_strs) in enumerate(loop):
+            
+            for idx, (images_hr, images_lr, interpolated_image_lr, label_strs) in enumerate(tqdm(self.train_loader)):
                 
                 images_hr = images_hr.to(self.device)
                 images_lr = images_lr.to(self.device)
