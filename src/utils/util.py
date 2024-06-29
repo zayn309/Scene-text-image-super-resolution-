@@ -9,6 +9,12 @@ import string
 from IPython import embed
 
 
+
+def denormalize(tensor, mean=0.5, std=0.5):
+    # Perform denormalization
+    tensor = tensor * std + mean
+    return tensor
+
 def str_filt(str_, voc_type):
     alpha_dict = {
         'digit': string.digits,

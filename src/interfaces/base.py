@@ -15,7 +15,7 @@ from torchvision import transforms
 from torch.autograd import Variable
 from collections import OrderedDict
 import matplotlib.pyplot as plt 
-
+from utils.util import denormalize
 from model import recognizer
 from model import moran
 from model import crnn
@@ -149,27 +149,27 @@ class TextBase(object):
         
         # Move tensors to CPU if they are on CUDA
         if LR.is_cuda:
-            LR = LR.cpu().permute(0,2,3,1)
+            LR = denormalize(LR).cpu().permute(0,2,3,1)
         if HR.is_cuda:
-            HR = HR.cpu().permute(0,2,3,1)
+            HR = denormalize(HR).cpu().permute(0,2,3,1)
         if SR.is_cuda:
-            SR = SR.cpu().permute(0,2,3,1)
+            SR = denormalize(SR).cpu().permute(0,2,3,1)
         
         fig, axes = plt.subplots(3, num_images, figsize=(10, 10))
         
         for i in range(num_images):
             # LR images and their labels
-            axes[0, i].imshow(LR[i].numpy(), cmap='gray')
+            axes[0, i].imshow(LR[i].numpy())
             axes[0, i].set_title(f"LR: {pred_str_lr[i]}")
             axes[0, i].axis('off')
             
             # HR images and their labels
-            axes[1, i].imshow(HR[i].numpy(), cmap='gray')
+            axes[1, i].imshow(HR[i].numpy())
             axes[1, i].set_title(f"HR: {label_strs_hr[i]}")
             axes[1, i].axis('off')
             
             # SR images and their labels
-            axes[2, i].imshow(SR[i].numpy(), cmap='gray')
+            axes[2, i].imshow(SR[i].numpy())
             axes[2, i].set_title(f"SR: {pred_str_sr[i]}")
             axes[2, i].axis('off')
         

@@ -15,11 +15,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def denormalize(tensor, mean=0.5, std=0.5):
-    # Perform denormalization
-    tensor = tensor * std + mean
-    return tensor
-
 def main(config, args):
     Mission = TextSR(config, args)
     Mission.train()
