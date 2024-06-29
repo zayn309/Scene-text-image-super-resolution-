@@ -83,7 +83,6 @@ class TextSR(TextBase):
                     ssim = self.cal_ssim((sr_output+1) / 2,(images_hr + 1) / 2)
                     epoch_losses['psnr'] += psnr.item()
                     epoch_losses['ssim'] += ssim.item()
-                break
                 #del images_hr, images_lr, interpolated_image_lr, sr_output, TP_lr, TP_hr, loss_dic
                 #torch.cuda.empty_cache()
                 
