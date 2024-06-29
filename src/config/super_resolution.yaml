@@ -5,18 +5,18 @@ TRAIN:
     '../dataset/lmdb/str/TextZoom/train1',
     '../dataset/lmdb/str/TextZoom/train2',
   ]
-  batch_size: 256
+  batch_size: 512
   width: 128
   height: 32
   epochs: 500
   cuda: false
   ngpu: 0
   workers: 0
-  resume: False
+  resume: ''
   ckpt_dir: './ckpt/'
   voc_type: 'all' 
-  saveInterval: 200
-  displayInterval: 100 
+  saveInterval: 10
+  displayInterval: 5
   adadelta: False
   lr: 0.001
   adam: True
@@ -43,8 +43,8 @@ TRAIN:
       '../dataset/lmdb/str/TextZoom/test/medium',
     ]
     n_vis: 10
-    vis_dir: 'demo'
-    valInterval: 200 #-1, val at the end of epoch
+    vis_dir: './demo/'
+    valInterval: 5 #-1, val at the end of epoch
     aster_pretrained: './pretrained_rec_weights/Aster.pth.tar'
     moran_pretrained: './pretrained_rec_weights/Moran.pth'
     crnn_pretrained: './pretrained_rec_weights/crnn.pth'

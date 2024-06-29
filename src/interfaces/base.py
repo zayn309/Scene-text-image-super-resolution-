@@ -14,6 +14,7 @@ import torchvision
 from torchvision import transforms
 from torch.autograd import Variable
 from collections import OrderedDict
+import matplotlib.pyplot as plt 
 
 from model import recognizer
 from model import moran
@@ -124,29 +125,89 @@ class TextBase(object):
                                betas=(cfg.beta1, 0.999))
         return optimizer
 
-    def tripple_display(self, image_in, image_out, image_target, pred_str_lr, pred_str_sr, label_strs, index):
-        pass
-
-    def test_display(self, image_in, image_out, image_target, pred_str_lr, pred_str_sr, label_strs, str_filt):
-        pass
-
-    def save_checkpoint(self, netG, epoch, iters, best_acc_dict, best_model_info, is_best, converge_list):
+    def visualize_and_save(self,LR, HR, SR, pred_str_lr, pred_str_sr, label_strs_hr,epoch, base_dir='visualizations'):
+        """
+        Visualize the first 2 LR, HR, and SR images with their corresponding labels and save the figure as a PNG file.
+        
+        Parameters:
+        - LR: Batch tensor of Low-Resolution images.
+        - HR: Batch tensor of High-Resolution images.
+        - SR: Batch tensor of Super-Resolution images.
+        - pred_str_lr: List of predicted strings for LR images.
+        - pred_str_sr: List of predicted strings for SR images.
+        - label_strs_hr: List of true label strings for HR images.
+        - epoch: The current epoch number.
+        - base_dir: Base directory to save the figures (default is 'visualizations').
+        """
+        
+        # Ensure the directory for the current epoch exists
+        epoch_dir = os.path.join(base_dir, f'epoch_{epoch}')
+        os.makedirs(epoch_dir, exist_ok=True)
+        
+        # Only take the first 2 images
+        num_images = min(2, LR.shape[0])
+        
+        # Move tensors to CPU if they are on CUDA
+        if LR.is_cuda:
+            LR = LR.cpu()
+        if HR.is_cuda:
+            HR = HR.cpu()
+        if SR.is_cuda:
+            SR = SR.cpu()
+        
+        fig, axes = plt.subplots(3, num_images, figsize=(10, 10))
+        
+        for i in range(num_images):
+            # LR images and their labels
+            axes[0, i].imshow(LR[i].numpy(), cmap='gray')
+            axes[0, i].set_title(f"LR: {pred_str_lr[i]}")
+            axes[0, i].axis('off')
+            
+            # HR images and their labels
+            axes[1, i].imshow(HR[i].numpy(), cmap='gray')
+            axes[1, i].set_title(f"HR: {label_strs_hr[i]}")
+            axes[1, i].axis('off')
+            
+            # SR images and their labels
+            axes[2, i].imshow(SR[i].numpy(), cmap='gray')
+            axes[2, i].set_title(f"SR: {pred_str_sr[i]}")
+            axes[2, i].axis('off')
+        
+        plt.tight_layout()
+        filename = os.path.join(epoch_dir, 'visualization.png')
+        plt.savefig(filename)
+        plt.show()
+    
+    def save_checkpoint(self, net, epoch,opt, iters, best_acc_dict, is_best):
         ckpt_path = os.path.join('ckpt', self.vis_dir)
         if not os.path.exists(ckpt_path):
             os.mkdir(ckpt_path)
         save_dict = {
-            'state_dict_G': netG.module.state_dict(),
+            'state_dict': net.module.state_dict(),
+            'optimizer' : opt.state_dict(),
             'info': {'arch': self.args.arch, 'iters': iters, 'epochs': epoch, 'batch_size': self.batch_size,
                      'voc_type': self.voc_type, 'up_scale_factor': self.scale_factor},
             'best_history_res': best_acc_dict,
-            'best_model_info': best_model_info,
-            'param_num': sum([param.nelement() for param in netG.module.parameters()]),
-            'converge': converge_list
+            'param_num': sum([param.nelement() for param in net.module.parameters()]),
         }
         if is_best:
             torch.save(save_dict, os.path.join(ckpt_path, 'model_best.pth'))
         else:
             torch.save(save_dict, os.path.join(ckpt_path, 'checkpoint.pth'))
+    
+        
+    def load_checkpoint(self, checkpoint_file, lr = None):
+        print("=> Loading checkpoint")
+        checkpoint = torch.load(checkpoint_file, map_location=self.device)
+        
+        self.model.load_state_dict(checkpoint["state_dict"])
+        self.opt.load_state_dict(checkpoint["optimizer"])
+
+        # If we don't do this then it will just have learning rate of old checkpoint
+        # and it will lead to many hours of debugging \:
+        if lr :
+            for param_group in self.opt.param_groups:
+                param_group["lr"] =  lr
 
     def MORAN_init(self):
         cfg = self.config.TRAIN
@@ -233,11 +294,8 @@ class TextBase(object):
         # Move the model to the appropriate device
         aster = aster.to(device)
 
-        # Use DataParallel if CUDA is available and multiple GPUs are available
-        if torch.cuda.is_available() and cfg.ngpu > 1:
-            aster = torch.nn.DataParallel(aster, device_ids=range(cfg.ngpu))
         
-        return aster.eval(), aster_info
+        return (aster.eval(), aster_info)
 
     def parse_aster_data(self, imgs_input):
         cfg = self.config.TRAIN

@@ -8,7 +8,11 @@ class model_sr(nn.Module):
         super(model_sr,self).__init__()
         self.tp_module = TP_module()
         self.generator = Generator()
-    def forward(self,input_img):
-        probs, tp_features = self.tp_module(input_img)
+        
+    def forward(self,input_img, interpolated_input_img):
+        
+        probs, tp_features = self.tp_module(interpolated_input_img)
+        
         sr_output = self.generator(input_img,tp_features)
+        
         return sr_output , probs # returning the probs to calc the KL loss

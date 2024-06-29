@@ -15,13 +15,19 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
+def denormalize(tensor, mean=0.5, std=0.5):
+    # Perform denormalization
+    tensor = tensor * std + mean
+    return tensor
+
 def main(config, args):
     Mission = TextBase(config, args)
-    datasets, dataloaders = Mission.get_val_data()
-    
-    print(dataloaders)
-    
-    
+    dataset, dataloader = Mission.get_train_data()
+    data = next(iter(dataloader))
+
+    images_hr, images_lr, interpolated_image_lr, label_strs = data
+    ssim  = Mission.cal_ssim(denormalize(interpolated_image_lr),denormalize(images_hr))
+    print(ssim)
     # Mission = TextBase(config, args)
     # _, dataloader = Mission.get_train_data()
     # data = next(iter(dataloader))

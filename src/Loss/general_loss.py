@@ -14,13 +14,14 @@ class TotalLoss(nn.Module):
         self.gamma = self.config.loss.gamma
         self.beta = self.config.beta
         self.alpha = self.config.alpha 
-
-    def forward(self, predictions, targets, kl_input, kl_target):
-        charbonnier_loss = self.charbonnier_loss(predictions, targets)
-        tp_kl_loss = self.tp_kl_loss(kl_input, kl_target)
-        tp_l1_loss = self.tp_l1_loss(predictions, targets)
         
-        total_loss = self.gamma * charbonnier_loss + self.alpha * tp_kl_loss + self.beta * tp_l1_loss
+
+    def forward(self, sr, hr, TP_lr, TP_hr):
+        charbonnier_loss = self.charbonnier_loss(sr, hr)
+        tp_kl_loss = self.tp_kl_loss(TP_lr, TP_hr)
+        tp_l1_loss = self.tp_l1_loss(TP_lr, TP_hr)
+        
+        total_loss = (self.gamma * charbonnier_loss) + (self.alpha * tp_kl_loss) + (self.beta * tp_l1_loss)
         return {'ch_loss': charbonnier_loss.item(),
                 'kl_loss': tp_kl_loss.item(),
                 'l1_loss': tp_l1_loss.item(),
