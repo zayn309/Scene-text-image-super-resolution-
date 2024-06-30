@@ -9,26 +9,31 @@ class UpscaleTransformModule(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=128, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(128)
         self.act1 = nn.LeakyReLU(0.2)
+        self.dropout1 = nn.Dropout(0.5)
         
         self.conv2 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(256)
         self.act2 = nn.LeakyReLU(0.2)
+        self.dropout2 = nn.Dropout(0.5)
         
         # First upscaling layer using sub-pixel convolution
         self.conv3 = nn.Conv2d(256, 256 * 4, kernel_size=3, padding=1)
         self.ps1 = nn.PixelShuffle(2)
         self.bn3 = nn.BatchNorm2d(256)
         self.act3 = nn.LeakyReLU(0.2)
+        self.dropout3 = nn.Dropout(0.5)
         
         # Additional transformations after first upscaling
         self.conv4 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
         self.bn4 = nn.BatchNorm2d(128)
         self.act4 = nn.LeakyReLU(0.2)
+        self.dropout4 = nn.Dropout(0.5)
         
         self.conv5 = nn.Conv2d(128, 128 * 4, kernel_size=3, padding=1)
         self.ps2 = nn.PixelShuffle(2)
         self.bn5 = nn.BatchNorm2d(128)
         self.act5 = nn.LeakyReLU(0.2)
+        self.dropout5 = nn.Dropout(0.5)
         
         # Final convolution to adjust the channel size
         self.conv6 = nn.Conv2d(128, 3, kernel_size=3, padding=1)
@@ -47,16 +52,21 @@ class UpscaleTransformModule(nn.Module):
         """
         # Initial transformations
         x = self.act1(self.bn1(self.conv1(x)))
+        x = self.dropout1(x)
         x = self.act2(self.bn2(self.conv2(x)))
+        x = self.dropout2(x)
         
         # First upscaling step
         x = self.act3(self.bn3(self.ps1(self.conv3(x))))
+        x = self.dropout3(x)
         
         # Additional transformations after first upscaling
         x = self.act4(self.bn4(self.conv4(x)))
+        x = self.dropout4(x)
         
         # Second upscaling step
         x = self.act5(self.bn5(self.ps2(self.conv5(x))))
+        x = self.dropout5(x)
         
         # Adjust the channel size to 3
         x = self.conv6(x)

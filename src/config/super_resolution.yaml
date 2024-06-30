@@ -28,8 +28,8 @@ TRAIN:
 
   loss:
     gamma: 5
-    alpha: 0.7
-    beta: 0.7
+    alpha: 0.01
+    beta: 0.5
 
   LR_Scheduler:
     initial_lr: 0.001
