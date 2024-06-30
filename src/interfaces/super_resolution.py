@@ -105,6 +105,7 @@ class TextSR(TextBase):
             if epoch % self.config.TRAIN.saveInterval == 0:
                 if epoch_losses['total_loss'] < self.best_loss:
                     self.save_checkpoint(self.model,epoch,self.opt,self.epochs,epoch_losses,is_best=True)
+                    self.best_loss = epoch_losses['total_loss']
                 else:
                     self.save_checkpoint(self.model,epoch,self.opt,self.epochs,epoch_losses,is_best=False)
             if self.config.TRAIN.displayInterval % epoch:

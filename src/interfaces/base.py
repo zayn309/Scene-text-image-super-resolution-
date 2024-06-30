@@ -179,9 +179,11 @@ class TextBase(object):
         plt.show()
     
     def save_checkpoint(self, net, epoch,opt, iters, best_acc_dict, is_best):
-        ckpt_path = os.path.join('ckpt', self.vis_dir)
+        ckpt_path = os.path.join(self.config.TRAIN.ckpt_dir)
+
         if not os.path.exists(ckpt_path):
-            os.mkdir(ckpt_path)
+            os.makedirs(ckpt_path)
+            
         save_dict = {
             'state_dict': net.module.state_dict(),
             'optimizer' : opt.state_dict(),

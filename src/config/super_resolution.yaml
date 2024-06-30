@@ -15,7 +15,7 @@ TRAIN:
   resume: ''
   ckpt_dir: './ckpt/'
   voc_type: 'all' 
-  saveInterval: 10
+  saveInterval: 1
   displayInterval: 2
   adadelta: False
   lr: 0.001
