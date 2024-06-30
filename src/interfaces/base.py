@@ -190,7 +190,7 @@ class TextBase(object):
             'info': {'arch': self.args.arch, 'iters': iters, 'epochs': epoch, 'batch_size': self.batch_size,
                      'voc_type': self.voc_type, 'up_scale_factor': self.scale_factor},
             'best_history_res': best_acc_dict,
-            'param_num': sum([param.nelement() for param in net.module.parameters()]),
+            'param_num': sum([param.nelement() for param in net.parameters()]),
         }
         if is_best:
             torch.save(save_dict, os.path.join(ckpt_path, 'model_best.pth'))
