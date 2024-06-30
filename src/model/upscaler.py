@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import torch
+import torch.nn as nn
+
 class UpscaleTransformModule(nn.Module):
     def __init__(self, in_channels):
         super(UpscaleTransformModule, self).__init__()
@@ -73,6 +76,9 @@ class UpscaleTransformModule(nn.Module):
         
         # Apply final convolution
         x = self.final_conv(x)
+
+        # Apply tanh to bound output between -1 and 1
+        x = torch.tanh(x)
 
         return x
 
