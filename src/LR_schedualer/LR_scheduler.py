@@ -19,7 +19,7 @@ class LR_Scheduler(_LRScheduler):
         self.last_epoch = epoch
 
         # Decay the learning rate by 0.5 every 100 epochs
-        if epoch % 10 == 0:
+        if epoch % 20 == 0:
             if self.current_lr > self.final_lr:
                 self.current_lr *= self.decay_factor
             else:
