@@ -5,17 +5,17 @@ TRAIN:
     '../dataset/lmdb/str/TextZoom/train1',
     '../dataset/lmdb/str/TextZoom/train2',
   ]
-  batch_size: 64
+  batch_size: 128
   width: 128
   height: 32
   epochs: 50
-  cuda: false
+  cuda: True
   ngpu: 0
   workers: 0
   resume: ''
   ckpt_dir: './ckpt/'
   voc_type: 'all' 
-  saveInterval: 1
+  saveInterval: 5
   displayInterval: 2
   adadelta: False
   lr: 0.001
