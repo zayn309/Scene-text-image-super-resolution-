@@ -80,7 +80,7 @@ class MaxViT(nn.Module):
                 )
             )
         self.stages = nn.ModuleList(stages)
-        self.proj = nn.Conv2d(embed_dim * 2 * 3, embed_dim * 2, kernel_size=1)
+        self.proj = nn.Conv2d(embed_dim * 2 * 4, embed_dim * 2, kernel_size=1)
         self.act3 = act_layer()
         self.conv3 = nn.Conv2d(embed_dim * 2, embed_dim, kernel_size=3, padding=1)
         self.act4 = act_layer()
