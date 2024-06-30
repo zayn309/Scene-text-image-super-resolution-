@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# encoding: utf-8
-
 import random
 import torch
 from torch.utils.data import Dataset
@@ -92,7 +89,6 @@ class lmdbDataset(Dataset):
 class lmdbDataset_real(Dataset):
     def __init__(self, root=None, voc_type='upper', max_len=100, test=False):
         super(lmdbDataset_real, self).__init__()
-        print(root)
         self.env = lmdb.open(
             root,
             max_readers=1,

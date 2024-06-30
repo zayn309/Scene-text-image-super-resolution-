@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import sys
 from typing import Tuple
+import torch.nn.init as init
+
 sys.path.append('../')
 sys.path.append('./')
 from model.MaxVit import MaxViT
@@ -21,7 +23,21 @@ class Generator(nn.Module):
         self.channels = channels
         self.vit = MaxViT(in_channels=self.in_channels, depths=self.depth, channels=self.channels)
         self.upscaler = UpscaleTransformModule(in_channels=64)
-        
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                init.xavier_uniform_(m.weight)
+                if m.bias is not None:
+                    init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                init.constant_(m.weight, 1)
+                init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                init.xavier_uniform_(m.weight)
+                init.constant_(m.bias, 0)
+            
     def forward(self, input,tp_features):
         # input should be of shape (B, 3, 16, 64)
         # and output should be of shape (B, 3, 32, 128)
@@ -29,35 +45,3 @@ class Generator(nn.Module):
         vit_features = self.vit(input, tp_features)
         upscaled_image = self.upscaler(vit_features)
         return upscaled_image
-
-
-if __name__ == "__main__":
-    # Set up training loop
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    criterion = nn.MSELoss()
-    model = Generator().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=1e-5)
-    print("the training is done on", device)
-    print("the model summary: ")
-    print(model)
-
-    model.train()
-    
-    num_epochs = 1000
-    batch_size = 1
-
-    # Generate random noise as input and target output
-    input_noise = torch.rand(batch_size, 3, 16, 64).to(device)
-
-
-    for epoch in range(num_epochs):
-
-        # Forward pass
-        output = model.vit(input_noise)
-        print(output.shape)
-        break
-        loss = criterion(output, target_noise)
-        # Backward pass and optimization
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()

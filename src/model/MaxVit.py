@@ -105,21 +105,17 @@ class MaxViT(nn.Module):
             skip_input = out
             out = stage(out)
             
-            if idx != len(self.stages) - 1:
-                stages_output.append(out)
-                
             out = torch.cat((out, TP_features), dim=1)
             out = self.tp_projection[idx](out)
             out += skip_input  # In-place addition
+            
+            stages_output.append(out)
 
         # Concatenate outputs of all stages except the last one
         concatenated_output = torch.cat(stages_output, dim=1)
         projected_output = self.proj(concatenated_output)
-        
-        out += projected_output  # In-place addition
-        out = self.act3(out)
 
-        output = self.act4(self.conv3(out) + initial)  # In-place addition
+        output = self.act4(self.conv3(projected_output))  # In-place addition
 
         return output
 
