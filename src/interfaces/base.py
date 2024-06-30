@@ -183,9 +183,9 @@ class TextBase(object):
 
         if not os.path.exists(ckpt_path):
             os.makedirs(ckpt_path)
-            
+
         save_dict = {
-            'state_dict': net.module.state_dict(),
+            'state_dict': net.state_dict(),
             'optimizer' : opt.state_dict(),
             'info': {'arch': self.args.arch, 'iters': iters, 'epochs': epoch, 'batch_size': self.batch_size,
                      'voc_type': self.voc_type, 'up_scale_factor': self.scale_factor},
