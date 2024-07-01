@@ -15,7 +15,7 @@ TRAIN:
   ngpu: 0
   workers: 0
   resume: '/content/Scene-text-image-super-resolution-/src/ckpt/model_best.pth'
-  new_lr: 0.00001
+  new_lr: 0.000005
   ckpt_dir: './ckpt/'
   voc_type: 'all' 
   saveInterval: 5
