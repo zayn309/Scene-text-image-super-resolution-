@@ -41,7 +41,7 @@ class TP_transformer(nn.Module):
         self.bn7 = nn.BatchNorm2d(32)
         self.act7 = nn.PReLU(num_parameters=32)
 
-        self.conv8 = nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3,6), stride=1, padding=(1,0))
+        self.conv8 = nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3,6), stride=1, padding=(1,1))
         self.bn8 = nn.BatchNorm2d(32)
         self.act8 = nn.PReLU(num_parameters=32)
 
