@@ -40,7 +40,6 @@ class ResidualBlock(nn.Module):
 
     def forward(self, x, tp_features):
         out = self.block1(x)
-        print(out.shape)
         out = self.block2(out)
         out = torch.cat((out, tp_features), dim=1)
         out = self.conv1x1(out)
