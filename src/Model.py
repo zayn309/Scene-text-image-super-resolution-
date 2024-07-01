@@ -1,5 +1,5 @@
 from TP_Module import TP_module
-from model.Generator import Generator
+from model.Generator_srgan import Generator
 import torch
 import torch.nn as nn
 
