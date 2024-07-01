@@ -7,7 +7,7 @@ TRAIN:
     '../dataset/lmdb/str/TextZoom/test/easy',
     '../dataset/lmdb/str/TextZoom/test/medium',
   ]
-  batch_size: 64
+  batch_size: 128
   width: 128
   height: 32
   epochs: 50
