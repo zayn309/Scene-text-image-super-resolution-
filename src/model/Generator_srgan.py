@@ -3,7 +3,7 @@ import torch
 
 
 class ConvBlock(nn.Module):
-    def _init_(self,
+    def __init__(self,
                  in_channels,
                  out_channels,
                  discriminator=False,
@@ -21,7 +21,7 @@ class ConvBlock(nn.Module):
 
 
 class UpsampleBlock(nn.Module):
-    def _init_(self, in_c, scale_factor):
+    def __init__(self, in_c, scale_factor):
         super(UpsampleBlock,self).__init__()
         self.conv = nn.Conv2d(in_c, in_c * scale_factor ** 2, 3, 1, 1)
         self.ps = nn.PixelShuffle(scale_factor)
@@ -32,7 +32,7 @@ class UpsampleBlock(nn.Module):
 
 
 class ResidualBlock(nn.Module):
-    def _init_(self, in_channels):
+    def __init__(self, in_channels):
         super(ResidualBlock,self).__init__()
         self.block1 = ConvBlock(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
         self.block2 = ConvBlock(in_channels, in_channels, kernel_size=3, stride=1, padding=1, use_act=False)
@@ -48,7 +48,7 @@ class ResidualBlock(nn.Module):
 
 
 class Generator(nn.Module):
-    def _init_(self, in_channels=3, num_channels=64, num_blocks=16):
+    def __init__(self, in_channels=3, num_channels=64, num_blocks=16):
         super(Generator,self).__init__()
         self.ini = ConvBlock(in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False)
         self.residuals = nn.ModuleList([ResidualBlock(num_channels) for _ in range(num_blocks)])
