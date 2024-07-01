@@ -50,14 +50,14 @@ class ResidualBlock(nn.Module):
 class Generator(nn.Module):
     def _init_(self, in_channels=3, num_channels=64, num_blocks=16):
         super(Generator,self)._init_()
-        self.initial = ConvBlock(in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False)
+        self.ini = ConvBlock(in_channels, num_channels, kernel_size=9, stride=1, padding=4, use_bn=False)
         self.residuals = nn.ModuleList([ResidualBlock(num_channels) for _ in range(num_blocks)])
         self.convblock = ConvBlock(num_channels, num_channels, kernel_size=3, stride=1, padding=1, use_act=False)
         self.upsamples = nn.Sequential(UpsampleBlock(num_channels, scale_factor=2))
         self.final = nn.Conv2d(num_channels, in_channels, kernel_size=9, stride=1, padding=4)
 
     def forward(self, x, tp_features):
-        initial = self.initial(x)
+        initial = self.ini(x)
         out = initial
         for residual in self.residuals:
             out = residual(out, tp_features)
