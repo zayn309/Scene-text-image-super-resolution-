@@ -12,7 +12,7 @@ TRAIN:
   cuda: True
   ngpu: 0
   workers: 0
-  resume: '/content/Scene-text-image-super-resolution-/src/model_best.pth'
+  resume: '/content/drive/MyDrive/maxvit model/model_best.pth'
   new_lr: 0.000005
   ckpt_dir: './ckpt/'
   voc_type: 'all' 
