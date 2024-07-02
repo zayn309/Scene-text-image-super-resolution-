@@ -17,7 +17,8 @@ warnings.filterwarnings('ignore')
 
 def main(config, args):
     Mission = TextSR(config, args)
-    Mission.train()
+    res = Mission.eval_loss_metrics(1)
+    print(res)
     
     # Mission = TextBase(config, args)
     # _, dataloader = Mission.get_train_data()

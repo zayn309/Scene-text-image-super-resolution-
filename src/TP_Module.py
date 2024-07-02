@@ -55,7 +55,25 @@ class TP_transformer(nn.Module):
         x = self.act7(self.bn7(self.conv7(x)))
         x = self.act8(self.bn8(self.conv8(x)))
         return x
-    
+
+
+class ConvNet(nn.Module):
+    def __init__(self):
+        super(ConvNet, self).__init__()
+        # Define the layers
+        # First Conv Layer
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(3, 3), stride=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(16)
+
+        self.act = nn.PReLU()
+        # Second Conv Layer
+        self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(4, 3), stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(32)
+    def forward(self, x):
+        # Forward pass through the layers
+        x = self.act(self.bn1(self.conv1(x)))
+        x = self.act((self.bn2(self.conv2(x))))
+        return x
 
 class TP_generator(nn.Module):
     def __init__(self) -> None:
@@ -75,7 +93,7 @@ class TP_module(nn.Module):
     def __init__(self, ) -> None:
         super(TP_module,self).__init__()
         self.tp_generator = TP_generator()
-        self.tp_transformer = TP_transformer()
+        self.tp_transformer = ConvNet()
     
     def generate_tp(self,interpolated_lr_image):
         out = self.tp_generator(interpolated_lr_image)

@@ -4,8 +4,6 @@ TRAIN:
   train_data_dir: [
     '../dataset/lmdb/str/TextZoom/train1',
     '../dataset/lmdb/str/TextZoom/train2',
-    '../dataset/lmdb/str/TextZoom/test/easy',
-    '../dataset/lmdb/str/TextZoom/test/medium',
   ]
   batch_size: 128
   width: 128

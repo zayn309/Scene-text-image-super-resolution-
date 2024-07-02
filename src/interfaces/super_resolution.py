@@ -33,7 +33,9 @@ class TextSR(TextBase):
         val_dataset, val_loader = self.get_val_data()
         self.val_dataset = val_dataset
         self.val_loader = val_loader
+        self.val_dataloader_easy = self.val_loader['easy']
         self.val_dataloader_medium = self.val_loader['medium']
+        self.val_dataloader_hard = self.val_loader['hard']
         self.cri = TotalLoss(self.config)
         self.scheduler = LR_Scheduler(self.opt,self.config)
         self.train_convergence_list = []
@@ -113,55 +115,64 @@ class TextSR(TextBase):
             if self.config.TRAIN.displayInterval % epoch:
                 self.monitor_loss()
         
-    def eval_loss_metrics(self,epoch):
+    def eval_loss_metrics(self, epoch):
         self.model.eval()  # Set the model to evaluation mode
-        val_losses = {
-            'charbonnier_loss': 0,
-            'kl_loss': 0,
-            'l1_loss': 0,
-            'total_loss': 0,
-            'psnr' : 0,
-            'ssim': 0,
+        
+        dataloaders = {
+            'easy': self.val_dataloader_easy,
+            'medium': self.val_dataloader_medium,
+            'hard': self.val_dataloader_hard,
         }
         
-        with torch.no_grad():
-            for idx, (images_hr, images_lr, interpolated_image_lr, label_strs) in enumerate(self.val_dataloader_medium):
-                images_hr = images_hr.to(self.device)
-                images_lr = images_lr.to(self.device)
-                interpolated_image_lr = interpolated_image_lr.to(self.device)
-                
-                sr_output, TP_lr = self.model(images_lr, interpolated_image_lr)
-                TP_hr = self.model.tp_module.generate_tp(images_hr)
-                
-                if epoch % self.config.TRAIN.displayInterval == 0 and idx == 0:
-                    returned_str = self.run_aster(images_hr[0:2],interpolated_image_lr[0:2],sr_output[0:2])
-                    self.visualize_and_save(images_lr[0:2],images_hr[0:2],sr_output[0:2],returned_str['lr'],returned_str['sr'],returned_str['hr'],epoch)
+        metrics_results = {}
+
+        for name, dataloader in dataloaders.items():
+            val_losses = {
+                'charbonnier_loss': 0,
+                'kl_loss': 0,
+                'l1_loss': 0,
+                'total_loss': 0,
+                'psnr' : 0,
+                'ssim': 0,
+            }
+            
+            with torch.no_grad():
+                for idx, (images_hr, images_lr, interpolated_image_lr, label_strs) in enumerate(dataloader):
+                    images_hr = images_hr.to(self.device)
+                    images_lr = images_lr.to(self.device)
+                    interpolated_image_lr = interpolated_image_lr.to(self.device)
                     
-                loss_dic = self.cri(sr_output, images_hr, TP_lr, TP_hr)
-                
-                loss = loss_dic['total_loss']
-                psnr = self.cal_psnr((sr_output+1) / 2,(images_hr + 1) / 2) # adding 1 and dividing by two to reverse the normalization
-                ssim = self.cal_ssim((sr_output+1) / 2,(images_hr + 1) / 2)
-                
-                val_losses['charbonnier_loss'] += loss_dic['charbonnier_loss']
-                val_losses['kl_loss'] += loss_dic['kl_loss']
-                val_losses['l1_loss'] += loss_dic['l1_loss']
-                val_losses['total_loss'] += loss.item()
-                val_losses['psnr'] += psnr.item()
-                val_losses['ssim'] += ssim.item()
-                
-        
-        num_batches = len(self.val_dataloader_medium)
-        val_losses['charbonnier_loss'] /= num_batches
-        val_losses['kl_loss'] /= num_batches
-        val_losses['l1_loss'] /= num_batches
-        val_losses['total_loss'] /= num_batches
-        val_losses['psnr'] /= num_batches
-        val_losses['ssim'] /= num_batches
-                
-        
-        self.val_convergence_list.append(val_losses)
-        self.model.train()
+                    sr_output, TP_lr = self.model(images_lr, interpolated_image_lr)
+                    TP_hr = self.model.tp_module.generate_tp(images_hr)
+                    
+                    if epoch % self.config.TRAIN.displayInterval == 0 and False:
+                        returned_str = self.run_aster(images_hr[0:2], interpolated_image_lr[0:2], sr_output[0:2])
+                        self.visualize_and_save(images_lr[0:2], images_hr[0:2], sr_output[0:2], returned_str['lr'], returned_str['sr'], returned_str['hr'], epoch)
+                        
+                    loss_dic = self.cri(sr_output, images_hr, TP_lr, TP_hr)
+                    
+                    loss = loss_dic['total_loss']
+                    psnr = self.cal_psnr((sr_output+1) / 2, (images_hr + 1) / 2)  # Reverse normalization
+                    ssim = self.cal_ssim((sr_output+1) / 2, (images_hr + 1) / 2)
+                    
+                    val_losses['charbonnier_loss'] += loss_dic['charbonnier_loss']
+                    val_losses['kl_loss'] += loss_dic['kl_loss']
+                    val_losses['l1_loss'] += loss_dic['l1_loss']
+                    val_losses['total_loss'] += loss.item()
+                    val_losses['psnr'] += psnr.item()
+                    val_losses['ssim'] += ssim.item()
+                    
+            num_batches = len(dataloader)
+            val_losses['charbonnier_loss'] /= num_batches
+            val_losses['kl_loss'] /= num_batches
+            val_losses['l1_loss'] /= num_batches
+            val_losses['total_loss'] /= num_batches
+            val_losses['psnr'] /= num_batches
+            val_losses['ssim'] /= num_batches
+            
+            metrics_results[name] = val_losses
+
+        return metrics_results        
         
     def eval_OCR(self,):
         pass
