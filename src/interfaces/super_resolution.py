@@ -10,8 +10,23 @@ import matplotlib.pyplot as plt
 import os
 import gc
 from pprint import pprint
-from utils.metrics import get_string_aster
+from utils.metrics import get_string_aster, get_string_crnn
+import Levenshtein
 
+
+def calculate_cer(str1, str2):
+    return Levenshtein.distance(str1, str2) / len(str1)
+
+def calculate_wer(str1, str2):
+    words1 = str1.split()
+    words2 = str2.split()
+    return Levenshtein.distance(' '.join(words1), ' '.join(words2)) / len(words1)
+
+def calculate_accuracy(str1, str2):
+    if len(str1) == 0 or len(str2) == 0:
+        return 0.0  # Handle case where str1 is empty
+    correct_characters = sum(c1 == c2 for c1, c2 in zip(str1, str2))
+    return correct_characters / len(str1)
 
 class TextSR(TextBase):
     def __init__(self, config, args):
@@ -23,19 +38,18 @@ class TextSR(TextBase):
         if self.config.TRAIN.resume:
             self.load_checkpoint(self.config.TRAIN.resume,self.config.TRAIN.new_lr)
             
-        self.eval_models_dic = {'aster': self.Aster_init(),}
-        #                         'moran':self.MORAN_init(),
-        #                         'crnn': self.CRNN_init()}
+        self.eval_models_dic = {'aster': self.Aster_init(),
+                                'moran':self.MORAN_init(),
+                                'crnn': self.CRNN_init()}
         
         train_dataset, train_loader = self.get_train_data()
         self.train_dataset = train_dataset
         self.train_loader = train_loader
         val_dataset, val_loader = self.get_val_data()
         self.val_dataset = val_dataset
-        self.val_loader = val_loader
-        self.val_dataloader_easy = self.val_loader['easy']
-        self.val_dataloader_medium = self.val_loader['medium']
-        self.val_dataloader_hard = self.val_loader['hard']
+        self.val_loader_easy = val_loader['easy']
+        self.val_loader_medium = val_loader['medium']
+        self.val_loader_hard = val_loader['hard']
         self.cri = TotalLoss(self.config)
         self.scheduler = LR_Scheduler(self.opt,self.config)
         self.train_convergence_list = []
@@ -43,6 +57,7 @@ class TextSR(TextBase):
         self.epochs = self.config.TRAIN.epochs
         self.best_loss = float('inf')
         print(f'the training is done on {self.device}')
+        
         
     def train(self):
         
@@ -115,67 +130,96 @@ class TextSR(TextBase):
             if self.config.TRAIN.displayInterval % epoch:
                 self.monitor_loss()
         
-    def eval_loss_metrics(self, epoch):
+    def eval_loss_metrics(self,epoch):
         self.model.eval()  # Set the model to evaluation mode
-        
-        dataloaders = {
-            'easy': self.val_dataloader_easy,
-            'medium': self.val_dataloader_medium,
-            'hard': self.val_dataloader_hard,
+        val_losses = {
+            'charbonnier_loss': 0,
+            'kl_loss': 0,
+            'l1_loss': 0,
+            'total_loss': 0,
+            'psnr' : 0,
+            'ssim': 0,
         }
         
-        metrics_results = {}
-
-        for name, dataloader in dataloaders.items():
-            val_losses = {
-                'charbonnier_loss': 0,
-                'kl_loss': 0,
-                'l1_loss': 0,
-                'total_loss': 0,
-                'psnr' : 0,
-                'ssim': 0,
-            }
-            
-            with torch.no_grad():
-                for idx, (images_hr, images_lr, interpolated_image_lr, label_strs) in enumerate(dataloader):
-                    images_hr = images_hr.to(self.device)
-                    images_lr = images_lr.to(self.device)
-                    interpolated_image_lr = interpolated_image_lr.to(self.device)
+        with torch.no_grad():
+            for idx, (images_hr, images_lr, interpolated_image_lr, label_strs) in enumerate(self.val_loader_hard):
+                images_hr = images_hr.to(self.device)
+                images_lr = images_lr.to(self.device)
+                interpolated_image_lr = interpolated_image_lr.to(self.device)
+                
+                sr_output, TP_lr = self.model(images_lr, interpolated_image_lr)
+                TP_hr = self.model.tp_module.generate_tp(images_hr)
+                
+                if epoch % self.config.TRAIN.displayInterval == 0 and idx == 0:
+                    returned_str = self.run_aster(images_hr[0:2],interpolated_image_lr[0:2],sr_output[0:2])
+                    self.visualize_and_save(images_lr[0:2],images_hr[0:2],sr_output[0:2],returned_str['lr'],returned_str['sr'],returned_str['hr'],epoch)
                     
-                    sr_output, TP_lr = self.model(images_lr, interpolated_image_lr)
-                    TP_hr = self.model.tp_module.generate_tp(images_hr)
-                    
-                    if epoch % self.config.TRAIN.displayInterval == 0 and False:
-                        returned_str = self.run_aster(images_hr[0:2], interpolated_image_lr[0:2], sr_output[0:2])
-                        self.visualize_and_save(images_lr[0:2], images_hr[0:2], sr_output[0:2], returned_str['lr'], returned_str['sr'], returned_str['hr'], epoch)
-                        
-                    loss_dic = self.cri(sr_output, images_hr, TP_lr, TP_hr)
-                    
-                    loss = loss_dic['total_loss']
-                    psnr = self.cal_psnr((sr_output+1) / 2, (images_hr + 1) / 2)  # Reverse normalization
-                    ssim = self.cal_ssim((sr_output+1) / 2, (images_hr + 1) / 2)
-                    
-                    val_losses['charbonnier_loss'] += loss_dic['charbonnier_loss']
-                    val_losses['kl_loss'] += loss_dic['kl_loss']
-                    val_losses['l1_loss'] += loss_dic['l1_loss']
-                    val_losses['total_loss'] += loss.item()
-                    val_losses['psnr'] += psnr.item()
-                    val_losses['ssim'] += ssim.item()
-                    
-            num_batches = len(dataloader)
-            val_losses['charbonnier_loss'] /= num_batches
-            val_losses['kl_loss'] /= num_batches
-            val_losses['l1_loss'] /= num_batches
-            val_losses['total_loss'] /= num_batches
-            val_losses['psnr'] /= num_batches
-            val_losses['ssim'] /= num_batches
-            
-            metrics_results[name] = val_losses
-
-        return metrics_results        
+                loss_dic = self.cri(sr_output, images_hr, TP_lr, TP_hr)
+                
+                loss = loss_dic['total_loss']
+                psnr = self.cal_psnr((sr_output+1) / 2,(images_hr + 1) / 2) # adding 1 and dividing by two to reverse the normalization
+                ssim = self.cal_ssim((sr_output+1) / 2,(images_hr + 1) / 2)
+                
+                val_losses['charbonnier_loss'] += loss_dic['charbonnier_loss']
+                val_losses['kl_loss'] += loss_dic['kl_loss']
+                val_losses['l1_loss'] += loss_dic['l1_loss']
+                val_losses['total_loss'] += loss.item()
+                val_losses['psnr'] += psnr.item()
+                val_losses['ssim'] += ssim.item()
+                
         
+        num_batches = len(self.val_loader_hard)
+        val_losses['charbonnier_loss'] /= num_batches
+        val_losses['kl_loss'] /= num_batches
+        val_losses['l1_loss'] /= num_batches
+        val_losses['total_loss'] /= num_batches
+        val_losses['psnr'] /= num_batches
+        val_losses['ssim'] /= num_batches
+                
+        return val_losses
+    
     def eval_OCR(self,):
-        pass
+        accuracies = {
+            'crnn': 0,
+            'moran': 0,
+            'aster': 0,
+        }
+        
+        with torch.no_grad():
+            for idx, (images_hr, images_lr, interpolated_image_lr, label_strs) in enumerate(self.val_loader_easy):
+                images_hr = images_hr.to(self.device)
+                images_lr = images_lr.to(self.device)
+                interpolated_image_lr = interpolated_image_lr.to(self.device)
+                
+                sr_output, _ = self.model(images_lr, interpolated_image_lr)
+                _ = self.model.tp_module.generate_tp(images_hr)
+                output_crnn = self.run_crnn(sr_output)
+                output_moran = self.run_moran(sr_output)
+                output_aster = self.run_aster(sr_output)
+                
+                acc_crnn  = 0
+                acc_moran = 0
+                acc_aster = 0
+                
+                for i in range(len(output_crnn)):
+                    acc_crnn   += calculate_accuracy(label_strs[i], output_crnn[i])
+                    acc_moran  += calculate_accuracy(label_strs[i], output_moran[i])
+                    acc_aster  += calculate_accuracy(label_strs[i], output_aster[i])
+                
+                acc_crnn  /= len(output_crnn)
+                acc_moran /= len(output_crnn)
+                acc_aster /= len(output_crnn)
+                
+                accuracies['crnn']  += acc_crnn
+                accuracies['moran'] += acc_moran
+                accuracies['aster'] += acc_aster
+                
+            accuracies['crnn']  /= len(self.val_loader_easy)
+            accuracies['moran'] /= len(self.val_loader_easy)
+            accuracies['aster'] /= len(self.val_loader_easy)
+            
+            return accuracies
+
 
     def monitor_loss(self):
         
@@ -203,27 +247,32 @@ class TextSR(TextBase):
         plt.savefig(plot_path)
         plt.close()
         
-    def run_aster(self, images_hr, images_lr, images_sr):
-        OCR_output = {}
+    def run_aster(self, images_sr):
         with torch.no_grad():
             aster, aster_info = self.eval_models_dic['aster']
             
-            input_dic_lr = self.parse_aster_data(images_lr)
-            input_dic_hr = self.parse_aster_data(images_hr)
             input_dic_sr = self.parse_aster_data(images_sr)
             
-            return_dic_lr = aster(input_dic_lr)
-            return_dic_hr = aster(input_dic_hr)
             return_dic_sr = aster(input_dic_sr)
             
-            pred_list_lr, _ = get_string_aster(return_dic_lr['output']['pred_rec'], input_dic_lr['rec_targets'], aster_info)
-            pred_list_hr, _ = get_string_aster(return_dic_hr['output']['pred_rec'], input_dic_hr['rec_targets'], aster_info)
             pred_list_sr, _ = get_string_aster(return_dic_sr['output']['pred_rec'], input_dic_sr['rec_targets'], aster_info)
             
-            # print('LR predictions:', pred_list_lr)
-            # print('HR predictions:', pred_list_hr)
-            # print('SR predictions:', pred_list_sr)
-            OCR_output['lr'] = pred_list_lr
-            OCR_output['hr'] = pred_list_hr
-            OCR_output['sr'] = pred_list_sr
-            return OCR_output
+            return pred_list_sr
+        
+    def run_crnn(self,image_sr):
+        with torch.no_grad():
+            parsed_images = self.parse_crnn_data((image_sr + 1) /2)
+            output = self.eval_models_dic['crnn'](parsed_images)
+            preds = get_string_crnn(output)
+            return preds
+    
+    def run_moran(self,image_sr):
+        with torch.no_grad():
+            tensor, length, text, text_rev = self.parse_moran_data(image_sr)
+            
+            output = self.eval_models_dic['moran'](tensor, length, text, text_rev, test = True , debug = True)
+            preds, _ = output[0]
+            _, preds = preds.max(1)
+            sim_preds = self.converter_moran.decode(preds.data, length.data)
+            sim_preds = list(map(lambda x: x.strip().split('$')[0], sim_preds))
+            return sim_preds

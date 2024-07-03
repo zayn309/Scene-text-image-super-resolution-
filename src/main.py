@@ -9,16 +9,14 @@ import matplotlib.pyplot as plt
 import numpy as np 
 from TP_Module import TP_module
 import torch
-from torch.autograd import Variable
-from utils.metrics import get_string_crnn, get_string_aster
 import warnings
 warnings.filterwarnings('ignore')
 
 
 def main(config, args):
     Mission = TextSR(config, args)
-    res = Mission.eval_loss_metrics(1)
-    print(res)
+    results = Mission.eval_OCR()
+    print(results)
     
     # Mission = TextBase(config, args)
     # _, dataloader = Mission.get_train_data()

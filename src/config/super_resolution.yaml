@@ -47,8 +47,8 @@ TRAIN:
     vis_dir: './demo/'
     valInterval: 5 #-1, val at the end of epoch
     aster_pretrained: './pretrained_rec_weights/Aster.pth.tar'
-    moran_pretrained: './pretrained_rec_weights/Moran.pth'
-    crnn_pretrained: './pretrained_rec_weights/crnn.pth'
+    moran_pretrained: '/content/drive/MyDrive/Models/aster.pth.tar'
+    crnn_pretrained: '/content/drive/MyDrive/Models/crnn.pth'
 
 TEST:
   checkpoint: ''
